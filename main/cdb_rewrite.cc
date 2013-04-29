@@ -2108,47 +2108,46 @@ static CItemChooseOrder<Item_sum::Sumfunctype::MAX_FUNC, Item_sum_max> ANON;
 
 template<Item_sum::Sumfunctype SFT>
 class CItemSum : public CItemSubtypeST<Item_sum_sum, SFT> {
-    virtual RewritePlan * do_gather_type(Item_sum_sum *i, reason &tr, Analysis & a) const {
+    virtual RewritePlan * do_gather_type(Item_sum_sum *i, reason &tr, Analysis & a) const    {
+        LOG(cdb_v) << "gather Item_sum_sum " << *i;
+        assert_s(i->get_arg_count() == 1, "expected one argument for sum");
+        Item * child_item = i->get_arg(0);
+        reason child_r;
+        RewritePlan ** childr_rp = new RewritePlan*[1];
+        RewritePlan * child_rp = gather(child_item, child_r, a);
+        childr_rp[0] = child_rp;
+        EncSet child_es = child_rp->es_out;
 
-	LOG(cdb_v) << "gather Item_sum_sum " << *i;
-	assert_s(i->get_arg_count() == 1, "expected one argument for sum");
-	Item * child_item = i->get_arg(0);
-	reason child_r;
-	RewritePlan ** childr_rp = new RewritePlan*[1];
-	RewritePlan * child_rp = gather(child_item, child_r, a);
-	childr_rp[0] = child_rp;
-	EncSet child_es = child_rp->es_out;
+        if (i->has_with_distinct()) {
+            UNIMPLEMENTED;
+        }
 
-	if (i->has_with_distinct()) {
-	    UNIMPLEMENTED;
-	}
+        EncSet my_es = ADD_EncSet;
 
-	EncSet my_es = ADD_EncSet;
+        EncSet solution = my_es.intersect(child_es);
 
-	EncSet solution = my_es.intersect(child_es);
+        check_if_empty(solution, i, my_es, child_r);
 
-	check_if_empty(solution, i, my_es, child_r);
+        OLK olk = solution.chooseOne();
 
-	OLK olk = solution.chooseOne();
+        EncSet return_es = EncSet(olk);
+        tr = reason(return_es, "summation", i);
 
-	EncSet return_es = EncSet(olk);
-	tr = reason(return_es, "summation", i);
-
-	return new RewritePlanOneOLK(return_es, olk, childr_rp, tr); ;
-
+        return new RewritePlanOneOLK(return_es, olk, childr_rp, tr); ;
     }
+
     virtual Item * do_rewrite_type(Item_sum_sum * i,
 				   const OLK & constr, const RewritePlan * rp,
 				   Analysis & a) const {
 
-	LOG(cdb_v) << "Item_sum_sum rewrite " << *i;
+	    LOG(cdb_v) << "Item_sum_sum rewrite " << *i;
 
-	list<Item *> args = rewrite_agg_args(i, constr, (RewritePlanOneOLK *)rp, a, 1);
+	    list<Item *> args = rewrite_agg_args(i, constr, (RewritePlanOneOLK *)rp, a, 1);
 
-	FieldMeta * fm = constr.key;
-	EncLayer * el = getAssert(fm->onions, oAGG, "onion oAGG not in onions")->layers.back();
-	assert_s(el->level() == SECLEVEL::HOM, "incorrect onion level on onion oHOM");
-	return ((HOM *)el)->sumUDA(args.front());
+	    FieldMeta * fm = constr.key;
+	    EncLayer * el = getAssert(fm->onions, oAGG, "onion oAGG not in onions")->layers.back();
+	    assert_s(el->level() == SECLEVEL::HOM, "incorrect onion level on onion oHOM");
+	    return ((HOM *)el)->sumUDA(args.front());
 
     }
 };
@@ -2191,17 +2190,48 @@ static class ANON : public CItemSubtypeST<Item_func_group_concat, Item_sum::Sumf
 template<Item_prod::Prodfunctype PT>
 class CItemProd : public CItemSubtypePT<Item_prod_prod, PT> {
     virtual RewritePlan * do_gather_type(Item_prod_prod *i, reason &tr, Analysis & a) const {
-        // TODO(finche): check that this is valid implementation
-
     	LOG(cdb_v) << "gather Item_prod_prod " << *i;
+        
+        assert_s(i->get_arg_count() == 1, "expected one argument for prod");
+        Item * child_item = i->get_arg(0);
+        reason child_r;
+        RewritePlan ** childr_rp = new RewritePlan*[1];
+        RewritePlan * child_rp = gather(child_item, child_r, a);
+        childr_rp[0] = child_rp;
+        EncSet child_es = child_rp->es_out;
+
+        if (i->has_with_distinct()) {
+            UNIMPLEMENTED;
+        }
 
         EncSet my_es = PROD_EncSet;
-	    string why = "multiplication";
 
-	    Item ** args = i->arguments();
-	    assert_s(i->argument_count() == 2, "expected two arguments for comparison");
+        EncSet solution = my_es.intersect(child_es);
 
-	    return typical_gather(a, i, my_es, why, tr, false, PLAIN_EncSet);
+        check_if_empty(solution, i, my_es, child_r);
+
+        OLK olk = solution.chooseOne();
+
+        EncSet return_es = EncSet(olk);
+        tr = reason(return_es, "multiplication", i);
+
+        return new RewritePlanOneOLK(return_es, olk, childr_rp, tr); ;
+    }
+
+    virtual Item * do_rewrite_type(Item_prod_prod * i,
+				   const OLK & constr, const RewritePlan * rp,
+				   Analysis & a) const {
+
+	    LOG(cdb_v) << "Item_prod_prod rewrite " << *i;
+
+	    list<Item *> args = rewrite_agg_args(i, constr, (RewritePlanOneOLK *)rp, a, 1);
+
+	    FieldMeta * fm = constr.key;
+	    EncLayer * el = getAssert(fm->onions, oELG, "onion oELG not in onions")->layers.back();
+	    assert_s(el->level() == SECLEVEL::ELG, "incorrect onion level on onion oELG");
+	    
+        //TODO(finche): rewrite return to use a PROD UDF
+        return ((HOM *)el)->sumUDA(args.front());
     }
 };
 
