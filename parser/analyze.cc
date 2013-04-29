@@ -35,7 +35,8 @@ static bool just_strings = false;
     m(order)    /* evaluate order on the server, e.g. for SORT BY */    \
     m(equal)    /* evaluate dups on the server, e.g. for GROUP BY */    \
     m(like)     /* need to do LIKE */                                   \
-    m(homadd)   /* addition */
+    m(homadd)   /* addition */                                          \
+    m(prod)     /* product */
 
 enum class cipher_type {
 #define __temp_m(n) n,
@@ -168,6 +169,17 @@ static class CItemSumFuncDir : public CItemTypeDir<Item_sum::Sumfunctype> {
     }
 } sumFuncTypes;
 
+//TODO(finche): define Item_prod
+static class CItemProdFuncDir : public CItemTypeDir<Item_prod::Prodfunctype> {
+    CItemType *lookup(Item *i) const {
+        return do_lookup(i, ((Item_prod *) i)->prod_func(), "prodfunc type");
+    }
+ public:
+    CItemProdFuncDir() {
+        itemTypes.reg(Item::Type::PROD_FUNC_ITEM, this);
+    }
+} prodFuncTypes;
+
 static class CItemFuncNameDir : public CItemTypeDir<std::string> {
     CItemType *lookup(Item *i) const {
         return do_lookup(i, ((Item_func *) i)->func_name(), "func name");
@@ -219,6 +231,12 @@ template<class T, Item_sum::Sumfunctype TYPE>
 class CItemSubtypeST : public CItemSubtype<T> {
  public:
     CItemSubtypeST() { sumFuncTypes.reg(TYPE, this); }
+};
+
+template<class T, Item_prod::Prodfunctype TYPE> 
+class CItemSubtypePT : public CItemSubtype<T> {
+  public:
+    CItemSubtypePT() { prodFuncTypes.reg(TYPE, this); } 
 };
 
 template<class T, const char *TYPE>
