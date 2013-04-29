@@ -799,7 +799,7 @@ class CItemProd : public CItemSubtypePT<Item_prod_prod, PT> {
         else
             analyze(i->get_arg(0), cipher_type_reason(cipher_type::plain, "sum/avg_x", i, &tr, false));
         */
-        // TODO(finche): fill in analyze for product modeled on analyze for sum
+        // TODO(finche): fill in analyze for product modeled on analyze for sum if analyze file still needed
     }
 };
 

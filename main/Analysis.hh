@@ -86,6 +86,7 @@ const EncSet FULL_EncSet = {
             {oOPE, LevelFieldPair(SECLEVEL::RND, NULL)},
             {oAGG, LevelFieldPair(SECLEVEL::HOM, NULL)},
             {oSWP, LevelFieldPair(SECLEVEL::SEARCH, NULL)},
+            {oELG, LevelFieldPair(SECLEVEL::ELG, NULL)},
         }
 };
 
@@ -104,6 +105,7 @@ const EncSet FULL_EncSet_Int = {
             {oDET, LevelFieldPair(SECLEVEL::RND, NULL)},
             {oOPE, LevelFieldPair(SECLEVEL::RND, NULL)},
             {oAGG, LevelFieldPair(SECLEVEL::HOM, NULL)},
+            {oELG, LevelFieldPair(SECLEVEL::ELG, NULL)},
         }
 };
 
@@ -118,6 +120,14 @@ const EncSet ADD_EncSet = {
         {
 	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
             {oAGG, LevelFieldPair(SECLEVEL::HOM, NULL)},
+        }
+};
+
+// not sure if needed 
+const EncSet PROD_EncSet = {
+        {
+	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+            {oELG, LevelFieldPair(SECLEVEL::ELG, NULL)},
         }
 };
 

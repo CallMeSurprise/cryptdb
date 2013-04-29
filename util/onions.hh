@@ -111,6 +111,7 @@ const EncDesc FULL_EncDesc = {
             {oOPE, SECLEVEL::OPE},
             {oAGG, SECLEVEL::HOM},
             {oSWP, SECLEVEL::SEARCH},
+            {oELG, SECLEVEL::ELG},
         }
 };
 
@@ -120,6 +121,7 @@ const EncDesc NUM_initial_levels = {
             {oDET, SECLEVEL::DET},
             {oOPE, SECLEVEL::OPE},
             {oAGG, SECLEVEL::HOM},
+            {oELG, SECLEVEL::ELG},
         }
 };
 
