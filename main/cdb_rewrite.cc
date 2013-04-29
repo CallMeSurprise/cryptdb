@@ -2230,8 +2230,7 @@ class CItemProd : public CItemSubtypePT<Item_prod_prod, PT> {
 	    EncLayer * el = getAssert(fm->onions, oELG, "onion oELG not in onions")->layers.back();
 	    assert_s(el->level() == SECLEVEL::ELG, "incorrect onion level on onion oELG");
 	    
-        //TODO(finche): rewrite return to use a PROD UDF
-        return ((HOM *)el)->sumUDA(args.front());
+        return ((ElGamal *)el)->prodUDA(args.front());
     }
 };
 

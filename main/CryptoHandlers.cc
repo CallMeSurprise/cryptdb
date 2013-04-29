@@ -695,6 +695,32 @@ HOM::sumUDF(Item * i1, Item * i2, const string &k) {
     return new Item_func_udf_str(&u_sum_f, l);
 }
 
+/****PRODUCT*******/
+
+static udf_func u_prod_a = {
+    LEXSTRING("prod"),
+    STRING_RESULT,
+    UDFTYPE_AGGREGATE,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    0L,
+};
+
+Item *
+ElGamal::prodUDA(Item * expr, const string &k) {
+    setKey(k);
+    List<Item> l;
+    l.push_back(expr);
+    l.push_back(ZZToItemStr(sk.hompubkey()));
+    unSetKey(k);
+    return new Item_func_udf_str(&u_prod_a, l);
+}
+
 /******* SEARCH **************************/
 
 Search::Search(Create_field * f, PRNG * key)
