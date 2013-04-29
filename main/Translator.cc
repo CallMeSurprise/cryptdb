@@ -76,6 +76,13 @@ anonymizeFieldName(unsigned int index, onion o, string origname, bool multiPrinc
             return string("field") + strFromVal(index) + "SWP"; 
         }        
     }
+    case oELG: {
+       if (multiPrinc) {
+          return origname + "ELG";
+       } else {
+          return string("field") + strFromVal(index) + "ELG";
+       }
+    }
     default: {assert_s(false, "invalid onion in anonymizeFieldName"); }
     }
 

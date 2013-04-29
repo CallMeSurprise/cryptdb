@@ -77,6 +77,25 @@ ElGamal::decrypt(Item * ctext, uint64_t IV, const string &k) {
     return new Item_int((ulonglong) c);
 }
 
+void
+ElGamal::setKey(const string &k) {
+    if (k.empty()) {
+        return;
+    }
+    key = k;
+    bf = blowfish(key);
+}
+
+//if we're using MultiPrinc, we don't want to keep a copy of a key around
+void
+ElGamal::unSetKey(const string &k) {
+    if (k.empty()) {
+        return;
+    }
+    key = "";
+    //TODO: unset blowfish
+}
+
 /****************** RND *********************/
 
 RND_int::RND_int(Create_field * f, PRNG * prng)
@@ -853,6 +872,9 @@ Search::searchUDF(Item * field, Item * expr) {
 EncLayer *
 EncLayerFactory::encLayer(onion o, SECLEVEL sl, Create_field * cf, PRNG * key) {
     switch (sl) {
+    case SECLEVEL::ELG: {
+       return new ElGamal(cf, key);
+    } 
     case SECLEVEL::RND: {
 	if (IsMySQLTypeNumeric(cf->sql_type) || (o == oOPE)) {
 	    return new RND_int(cf, key);

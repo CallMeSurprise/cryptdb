@@ -10,6 +10,7 @@ typedef enum onion {
     oDET,
     oOPE,
     oAGG,
+    oELG,
     oSWP,
     oPLAIN, 
     oINVALID,
@@ -21,7 +22,8 @@ typedef enum onion {
 // (note, this is not "iff")
 #define SECLEVELS(m)    \
     m(INVALID)          \
-    m(PLAINVAL)            \
+    m(PLAINVAL)         \
+    m(ELG)              \
     m(OPEJOIN)     	\
     m(OPE)		\
     m(DETJOIN)          \
@@ -66,7 +68,8 @@ static onionlayout PLAIN_ONION_LAYOUT = {
 static onionlayout NUM_ONION_LAYOUT = {
     {oDET, std::list<SECLEVEL>({SECLEVEL::DETJOIN, SECLEVEL::DET, SECLEVEL::RND})},
     {oOPE, std::list<SECLEVEL>({SECLEVEL::OPE, SECLEVEL::RND})},
-    {oAGG, std::list<SECLEVEL>({SECLEVEL::HOM})}
+    {oAGG, std::list<SECLEVEL>({SECLEVEL::HOM})},
+    {oELG, std::list<SECLEVEL>({SECLEVEL::ELG})}
 };
 
 static onionlayout MP_NUM_ONION_LAYOUT = {
