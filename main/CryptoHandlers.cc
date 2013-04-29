@@ -716,7 +716,7 @@ ElGamal::prodUDA(Item * expr, const string &k) {
     setKey(k);
     List<Item> l;
     l.push_back(expr);
-    l.push_back(ZZToItemStr(sk.hompubkey()));
+//    l.push_back(ZZToItemStr(sk.hompubkey()));
     unSetKey(k);
     return new Item_func_udf_str(&u_prod_a, l);
 }

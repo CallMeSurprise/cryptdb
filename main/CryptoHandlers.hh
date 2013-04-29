@@ -60,6 +60,8 @@ public:
     Item * encrypt(Item * ptext, uint64_t IV, const std::string &k = "");
     Item * decrypt(Item * ctext, uint64_t IV, const std::string &k = "");
 //        Item * decryptUDF(Item * col, Item * ivcol);
+    Item * prodUDA(Item * expr, const std::string &k = "");
+
     void setKey(const std::string &key);
     void unSetKey(const std::string &key);
 
