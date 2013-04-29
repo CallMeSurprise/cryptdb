@@ -169,7 +169,7 @@ static class CItemSumFuncDir : public CItemTypeDir<Item_sum::Sumfunctype> {
     }
 } sumFuncTypes;
 
-//TODO(finche): define Item_prod
+// Product handler
 static class CItemProdFuncDir : public CItemTypeDir<Item_prod::Prodfunctype> {
     CItemType *lookup(Item *i) const {
         return do_lookup(i, ((Item_prod *) i)->prod_func(), "prodfunc type");
@@ -233,6 +233,7 @@ class CItemSubtypeST : public CItemSubtype<T> {
     CItemSubtypeST() { sumFuncTypes.reg(TYPE, this); }
 };
 
+// Product handler
 template<class T, Item_prod::Prodfunctype TYPE> 
 class CItemSubtypePT : public CItemSubtype<T> {
   public:
@@ -786,6 +787,23 @@ static class ANON : public CItemSubtypeIT<Item_ref, Item::Type::REF_ITEM> {
     }
 } ANON;
 
+// Product handler
+template<Item_prod::Prodfunctype PT>
+class CItemProd : public CItemSubtypePT<Item_prod_prod, PT> {
+    virtual void do_analyze_type(Item_prod_prod *i, const cipher_type_reason &tr) const {
+        /*
+        if (i->has_with_distinct())
+            analyze(i->get_arg(0), cipher_type_reason(cipher_type::equal, "agg_distinct", i, &tr, false));
+        if (tr.t == cipher_type::any || tr.t == cipher_type::homadd)
+            analyze(i->get_arg(0), cipher_type_reason(cipher_type::homadd, "sum/avg", i, &tr, false));
+        else
+            analyze(i->get_arg(0), cipher_type_reason(cipher_type::plain, "sum/avg_x", i, &tr, false));
+        */
+        // TODO(finche): fill in analyze for product modeled on analyze for sum
+    }
+};
+
+static CItemProd<Item_prod::Prodfunctype::PROD_FUNC> ANON; // only one prod function
 
 /*
  * Some helper functions.
