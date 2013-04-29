@@ -8,9 +8,9 @@ all:    $(OBJDIR)/libedbcrypto.so
 $(OBJDIR)/libedbcrypto.so: $(CRYPTOOBJ) $(OBJDIR)/libedbutil.so
 	$(CXX) -shared -o $@ $(CRYPTOOBJ) $(LDFLAGS) -ledbutil
 
-all:	$(OBJDIR)/crypto/x
-$(OBJDIR)/crypto/x: $(OBJDIR)/crypto/x.o $(OBJDIR)/libedbcrypto.so
-	$(CXX) $< -o $@ $(LDFLAGS) -ledbcrypto
+#all:	$(OBJDIR)/crypto/x
+#$(OBJDIR)/crypto/x: $(OBJDIR)/crypto/x.o $(OBJDIR)/libedbcrypto.so
+#	$(CXX) $< -o $@ $(LDFLAGS) -ledbcrypto
 
 install: install_crypto
 

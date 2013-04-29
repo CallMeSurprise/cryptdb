@@ -46,6 +46,37 @@ get_key_item(const string & key) {
     return keyI;
 }
 
+// ElGamal
+
+ElGamal::ElGamal(Create_field * f, PRNG * prng)
+    : EncLayer(f),
+      key(prng->rand_string(key_bytes)),
+      bf(key)
+{
+}
+
+
+Create_field *
+ElGamal::newCreateField(string anonname) {
+    return createFieldHelper(cf, ciph_size, MYSQL_TYPE_LONGLONG, anonname);
+}
+
+Item *
+ElGamal::encrypt(Item * ptext, uint64_t IV, const string &k) {
+    setKey(k);
+    uint64_t p = static_cast<Item_int *>(ptext)->value;
+    LOG(encl) << "ElGamal encrypt " << p << " IV " << IV;
+    return new Item_int((ulonglong) p);
+}
+
+Item *
+ElGamal::decrypt(Item * ctext, uint64_t IV, const string &k) {
+    setKey(k);
+    uint64_t c = static_cast<Item_int*>(ctext)->value;
+    LOG(encl) << "RND_int decrypt " << c << " IV " << IV;
+    return new Item_int((ulonglong) c);
+}
+
 /****************** RND *********************/
 
 RND_int::RND_int(Create_field * f, PRNG * prng)

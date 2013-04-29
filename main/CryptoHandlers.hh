@@ -49,6 +49,25 @@ public:
     static EncLayer * encLayer(onion o, SECLEVEL sl, Create_field * cf, PRNG * key);
 };
 
+class ElGamal : public EncLayer { 
+
+public:
+    ElGamal(Create_field *, PRNG* prng);
+
+    SECLEVEL level() { return SECLEVEL::PLAINVAL; } 
+    Create_field* newCreateField(std::string anonname = "");
+
+    Item * encrypt(Item * ptext, uint64_t IV, const std::string &k = "");
+    Item * decrypt(Item * ctext, uint64_t IV, const std::string &k = "");
+//        Item * decryptUDF(Item * col, Item * ivcol);
+
+private:
+    std::string key;
+    blowfish bf;
+    static const int key_bytes = 16;    
+    static const int ciph_size = 8;
+};
+
 class RND_int : public EncLayer {
 public:
     RND_int(Create_field *, PRNG * key);

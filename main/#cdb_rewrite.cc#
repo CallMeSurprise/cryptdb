@@ -1,7 +1,7 @@
 #include <string>
 #include <map>
 #include <iostream>
-#include <fstream>
+#include <:fstream>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -23,284 +23,288 @@
 
 using namespace std;
 
-//TODO: replace table/field with FieldMeta * for speed and conciseness
+//TODO: replace table/field with FieldMeta * for // // // speed and conciseness
 
-#define UNIMPLEMENTED \
-        throw runtime_error(string("Unimplemented: ") + \
-                        string(__PRETTY_FUNCTION__))
+// // // #define UNIMPLEMENTED \
+// // //         throw runtime_error(string("Unimplemented: ") + \
+// // //                         string(__PRETTY_FUNCTION__))
 
-//TODO: rewrite_proj may not need to be part of each class;
-// it just does gather, choos and then rewrite
+// // // //TODO: rewrite_proj may not need to be part of each class;
+// // // // it just does gather, choos and then rewrite
 
-static Item *
-stringToItemField(string field, string table, Item_field * itf) {
+// // // static Item *
+// // // stringToItemField(string field, string table, Item_field * itf) {
 
-    THD * thd = current_thd;
-    assert(thd);
-    Item_field * res = new Item_field(thd, itf);
-    res->name = NULL; //no alias
-    res->field_name = make_thd_string(field);
-    res->table_name = make_thd_string(table);
+// // //     THD * thd = current_thd;
+// // //     assert(thd);
+// // //     Item_field * res = new Item_field(thd, itf);
+// // //     res->name = NULL; //no alias
+// // //     res->field_name = make_thd_string(field);
+// // //     res->table_name = make_thd_string(table);
 
-    return res;
-}
+// // //     return res;
+// // // }
 
-static inline string
-extract_fieldname(Item_field *i)
-{
-    stringstream fieldtemp;
-    fieldtemp << *i;
-    return fieldtemp.str();
-}
-
-
-//TODO: remove this at some point
-static inline void
-mysql_query_wrapper(MYSQL *m, const string &q)
-{
-    if (mysql_query(m, q.c_str())) {
-        cryptdb_err() << "query failed: " << q
-                << " reason: " << mysql_error(m);
-    }
-
-    // HACK(stephentu):
-    // Calling mysql_query seems to have destructive effects
-    // on the current_thd. Thus, we must call create_embedded_thd
-    // again.
-    void* ret = create_embedded_thd(0);
-    if (!ret) assert(false);
-}
-
-static void
-createMetaTablesIfNotExists(ProxyState & ps)
-{
-    assert(ps.e_conn->execute("CREATE DATABASE IF NOT EXISTS proxy_db"));
-
-    assert(ps.e_conn->execute(
-                   "CREATE TABLE IF NOT EXISTS proxy_db.table_info"
-                   "( id bigint NOT NULL PRIMARY KEY"
-                   ", dbname varchar(64) NOT NULL"
-                   ", name varchar(64) NOT NULL"
-                   ", anon_name varchar(64) NOT NULL"
-                   ", UNIQUE INDEX idx_table_name( dbname, name )"
-                   ") ENGINE=InnoDB;"));
-
-    assert(ps.e_conn->execute(
-                   "CREATE TABLE IF NOT EXISTS proxy_db.column_info"
-                   "( id bigint NOT NULL auto_increment PRIMARY KEY"
-                   ", table_id bigint NOT NULL"
-                   ", name varchar(64) NOT NULL"
-                   ", anon_det_name varchar(64)"
-                   ", anon_ope_name varchar(64)"
-                   ", anon_agg_name varchar(64)"
-                   ", anon_swp_name varchar(64)"
-                   ", salt_name varchar(4096)"
-                   ", is_encrypted tinyint NOT NULL"
-                   ", can_be_null tinyint NOT NULL"
-                   ", has_ope tinyint NOT NULL"
-                   ", has_agg tinyint NOT NULL"
-                   ", has_search tinyint NOT NULL"
-                   ", has_salt tinyint NOT NULL"
-                   ", ope_used tinyint NOT NULL"
-                   ", agg_used tinyint NOT NULL"
-                   ", search_used tinyint NOT NULL"
-                   ", sec_level_ope enum"
-                   "      ( 'INVALID'"
-                   "      , 'PLAIN'"
-                   "      , 'PLAIN_DET'"
-                   "      , 'DETJOIN'"
-                   "      , 'DET'"
-                   "      , 'DET'"
-                   "      , 'PLAIN_OPE'"
-                   "      , 'OPEJOIN'"
-                   "      , 'OPE'"
-                   "      , 'OPE'"
-                   "      , 'PLAIN_AGG'"
-                   "      , 'SEMANTIC_AGG'"
-                   "      , 'PLAIN_SWP'"
-                   "      , 'SWP'"
-                   "      , 'SEMANTIC_VAL'"
-                   "      , 'SECLEVEL_LAST'"
-                   "      ) NOT NULL DEFAULT 'INVALID'"
-                   ", sec_level_det enum"
-                   "      ( 'INVALID'"
-                   "      , 'PLAIN'"
-                   "      , 'PLAIN_DET'"
-                   "      , 'DETJOIN'"
-                   "      , 'DET'"
-                   "      , 'DET'"
-                   "      , 'PLAIN_OPE'"
-                   "      , 'OPEJOIN'"
-                   "      , 'OPE'"
-                   "      , 'OPE'"
-                   "      , 'PLAIN_AGG'"
-                   "      , 'SEMANTIC_AGG'"
-                   "      , 'PLAIN_SWP'"
-                   "      , 'SWP'"
-                   "      , 'SEMANTIC_VAL'"
-                   "      , 'SECLEVEL_LAST'"
-                   "      ) NOT NULL DEFAULT 'INVALID'"
-                   ", INDEX idx_column_name( name )"
-                   ", FOREIGN KEY( table_id ) REFERENCES table_info( id ) ON DELETE CASCADE"
-                   ") ENGINE=InnoDB;"));
-}
+// // // static inline string
+// // // extract_fieldname(Item_field *i)
+// // // {
+// // //     stringstream fieldtemp;
+// // //     fieldtemp << *i;
+// // //     return fieldtemp.str();
+// // // }
 
 
-static void
-printEC(Connect * e_conn, const string & command) {
-    DBResult * dbres;
-    assert_s(e_conn->execute(command, dbres), "command failed");
-    ResType res = dbres->unpack();
-    printRes(res);
-}
+// // // //TODO: remove this at some point
+// // // static inline void
+// // // mysql_query_wrapper(MYSQL *m, const string &q)
+// // // {
+// // //     if (mysql_query(m, q.c_str())) {
+// // //         cryptdb_err() << "query failed: " << q
+// // //                 << " reason: " << mysql_error(m);
+// // //     }
 
-static void
-printEmbeddedState(ProxyState & ps) {
-    printEC(ps.e_conn, "use proxy_db;");
-    printEC(ps.e_conn, "show databases;");
-    printEC(ps.e_conn, "show tables;");
-    printEC(ps.e_conn, "select * from column_info;");
-    printEC(ps.e_conn, "select * from table_info;");
-}
+// // //     // HACK(stephentu):
+// // //     // Calling mysql_query seems to have destructive effects
+// // //     // on the current_thd. Thus, we must call create_embedded_thd
+// // //     // again.
+// // //     void* ret = create_embedded_thd(0);
+// // //     if (!ret) assert(false);
+// // // }
+// // // /* TODO: put back
+// // // static void
+// // // createMetaTablesIfNotExists(ProxyState & ps)
+// // // {
+// // //     assert(ps.e_conn->execute("CREATE DATABASE IF NOT EXISTS proxy_db"));
 
+// // //     assert(ps.e_conn->execute(
+// // //                    "CREATE TABLE IF NOT EXISTS proxy_db.table_info"
+// // //                    "( id bigint NOT NULL PRIMARY KEY"
+// // //                    ", dbname varchar(64) NOT NULL"
+// // //                    ", name varchar(64) NOT NULL"
+// // //                    ", anon_name varchar(64) NOT NULL"
+// // //                    ", UNIQUE INDEX idx_table_name( dbname, name )"
+// // //                    ") ENGINE=InnoDB;"));
 
-static void
-initSchema(ProxyState & ps)
-{
+// // //     assert(ps.e_conn->execute(
+// // //                    "CREATE TABLE IF NOT EXISTS proxy_db.column_info"
+// // //                    "( id bigint NOT NULL auto_increment PRIMARY KEY"
+// // //                    ", table_id bigint NOT NULL"
+// // //                    ", name varchar(64) NOT NULL"
+// // //                    ", anon_det_name varchar(64)"
+// // //                    ", anon_ope_name varchar(64)"
+// // //                    ", anon_agg_name varchar(64)"
+// // //                    ", anon_swp_name varchar(64)"
+// // //                    ", salt_name varchar(4096)"
+// // //                    ", is_encrypted tinyint NOT NULL"
+// // //                    ", can_be_null tinyint NOT NULL"
+// // //                    ", has_ope tinyint NOT NULL"
+// // //                    ", has_agg tinyint NOT NULL"
+// // //                    ", has_search tinyint NOT NULL"
+// // //                    ", has_salt tinyint NOT NULL"
+// // //                    ", ope_used tinyint NOT NULL"
+// // //                    ", agg_used tinyint NOT NULL"
+// // //                    ", search_used tinyint NOT NULL"
+// // //                    ", sec_level_ope enum"
+// // //                    "      ( 'INVALID'"
+// // //                    "      , 'PLAIN'"
+// // //                    "      , 'PLAIN_DET'"
+// // //                    "      , 'DETJOIN'"
+// // //                    "      , 'DET'"
+// // //                    "      , 'DET'"
+// // //                    "      , 'PLAIN_OPE'"
+// // //                    "      , 'OPEJOIN'"
+// // //                    "      , 'OPE'"
+// // //                    "      , 'OPE'"
+// // //                    "      , 'PLAIN_AGG'"
+// // //                    "      , 'SEMANTIC_AGG'"
+// // //                    "      , 'PLAIN_SWP'"
+// // //                    "      , 'SWP'"
+// // //                    "      , 'SEMANTIC_VAL'"
+// // //                    "      , 'SECLEVEL_LAST'"
+// // //                    "      ) NOT NULL DEFAULT 'INVALID'"
+// // //                    ", sec_level_det enum"
+// // //                    "      ( 'INVALID'"
+// // //                    "      , 'PLAIN'"
+// // //                    "      , 'PLAIN_DET'"
+// // //                    "      , 'DETJOIN'"
+// // //                    "      , 'DET'"
+// // //                    "      , 'DET'"
+// // //                    "      , 'PLAIN_OPE'"
+// // //                    "      , 'OPEJOIN'"
+// // //                    "      , 'OPE'"
+// // //                    "      , 'OPE'"
+// // //                    "      , 'PLAIN_AGG'"
+// // //                    "      , 'SEMANTIC_AGG'"
+// // //                    "      , 'PLAIN_SWP'"
+// // //                    "      , 'SWP'"
+// // //                    "      , 'SEMANTIC_VAL'"
+// // //                    "      , 'SECLEVEL_LAST'"
+// // //                    "      ) NOT NULL DEFAULT 'INVALID'"
+// // //                    ", INDEX idx_column_name( name )"
+// // //                    ", FOREIGN KEY( table_id ) REFERENCES table_info( id ) ON DELETE CASCADE"
+// // //                    ") ENGINE=InnoDB;"));
+// // // }
+// // // */
+// // // 	 /*
+// // // static void
+// // // printEC(Connect * e_conn, const string & command) {
+// // //     DBResult * dbres;
+// // //     assert_s(e_conn->execute(command, dbres), "command failed");
+// // //     ResType res = dbres->unpack();
+// // //     printRes(res);
+// // // }
 
-//    printEmbeddedState(ps);
+// // // static void
+// // // printEmbeddedState(ProxyState & ps) {
+// // //     printEC(ps.e_conn, "use proxy_db;");
+// // //     printEC(ps.e_conn, "show databases;");
+// // //     printEC(ps.e_conn, "show tables;");
 
-    cerr << "warning: initSchema does not init enc layers correctly from shadow db\n";
-    createMetaTablesIfNotExists(ps);
+// // // }
+// // // 	 */
+// // // /*
+// // // static void
+// // // initSchema(ProxyState & ps)
+// // // {
 
-    vector<string> tablelist;
+// // //     printEmbeddedState(ps);
+// // // */
+// // //     /*   cerr << "warning: initSchema does not init enc layers correctly from shadow db\n";
+// // //     createMetaTablesIfNotExists(ps);
 
-    DBResult * dbres;
-    assert(ps.e_conn->execute("SELECT id, dbname, name, anon_name FROM proxy_db.table_info", dbres));
-    ScopedMySQLRes r(dbres->n);
-    MYSQL_ROW row;
-    while ((row = mysql_fetch_row(r.res()))) {
-        unsigned long *l = mysql_fetch_lengths(r.res());
-        assert(l != NULL);
-        TableMeta *tm = new TableMeta;
-        tm->tableNo = (unsigned int) atoi(string(row[0], l[0]).c_str());
-        tm->anonTableName = string(row[3], l[3]);
-        tm->has_salt = false;
-        string dbname(row[1], l[1]);
-        string origTableName(row[2], l[2]);
-        // tableMetaMap keys should include dbname: make_pair(dbname, origTableName)?
-        ps.schema->tableMetaMap[origTableName] = tm;
-        ps.schema->totalTables++;
+// // //     vector<string> tablelist;
 
-        string create_table_query;
-        {
-            string q = "SHOW CREATE TABLE `" + dbname + "`.`" + origTableName + "`";
-            DBResult * dbres = NULL;
-            assert(ps.e_conn->execute(q, dbres));
-            ScopedMySQLRes r(dbres->n);
-            assert(mysql_num_rows(r.res()) == 1);
-            assert(mysql_num_fields(r.res()) == 2);
-            MYSQL_ROW row = mysql_fetch_row(r.res());
-            unsigned long *lengths = mysql_fetch_lengths(r.res());
-            create_table_query = string(row[1], lengths[1]);
-        }
+// // //     DBResult * dbres;
+// // //     assert(ps.e_conn->execute("SELECT id, dbname, name, anon_name FROM proxy_db.table_info", dbres));
+// // //     ScopedMySQLRes r(dbres->n);
+// // //     MYSQL_ROW row;
+// // //     while ((row = mysql_fetch_row(r.res()))) {
+// // //         unsigned long *l = mysql_fetch_lengths(r.res());
+// // //         assert(l != NULL);
+// // //         TableMeta *tm = new TableMeta;
+// // //         tm->tableNo = (unsigned int) atoi(string(row[0], l[0]).c_str());
+// // //         tm->anonTableName = string(row[3], l[3]);
+// // //         tm->has_salt = false;
+// // //         string dbname(row[1], l[1]);
+// // //         string origTableName(row[2], l[2]);
+// // //         // tableMetaMap keys should include dbname: make_pair(dbname, origTableName)?
+// // //         ps.schema->tableMetaMap[origTableName] = tm;
+// // //         ps.schema->totalTables++;
 
-        query_parse parser(dbname, create_table_query);
-        LEX *lex = parser.lex();
-        assert(lex->sql_command == SQLCOM_CREATE_TABLE);
+// // //         string create_table_query;
+// // //         {
+// // //             string q = "SHOW CREATE TABLE `" + dbname + "`.`" + origTableName + "`";
+// // //             DBResult * dbres = NULL;
+// // //             assert(ps.e_conn->execute(q, dbres));
+// // //             ScopedMySQLRes r(dbres->n);
+// // //             assert(mysql_num_rows(r.res()) == 1);
+// // //             assert(mysql_num_fields(r.res()) == 2);
+// // //             MYSQL_ROW row = mysql_fetch_row(r.res());
+// // //             unsigned long *lengths = mysql_fetch_lengths(r.res());
+// // //             create_table_query = string(row[1], lengths[1]);
+// // //         }
 
-        // fetch all the column info for this table
-        {
-            string q = "SELECT "
-                       "c.name, "
+// // //         query_parse parser(dbname, create_table_query);
+// // //         LEX *lex = parser.lex();
+// // //         assert(lex->sql_command == SQLCOM_CREATE_TABLE);
 
-                       "c.has_ope, "
-                       "c.has_agg, "
-                       "c.has_search, "
+// // //         // fetch all the column info for this table
+// // //         {
+// // //             string q = "SELECT "
+// // //                        "c.name, "
 
-                       "c.anon_det_name, "
-                       "c.anon_ope_name, "
-                       "c.anon_agg_name, "
-                       "c.anon_swp_name, "
+// // //                        "c.has_ope, "
+// // //                        "c.has_agg, "
+// // //                        "c.has_search, "
 
-                       "c.sec_level_det, "
-                       "c.sec_level_ope, "
+// // //                        "c.anon_det_name, "
+// // //                        "c.anon_ope_name, "
+// // //                        "c.anon_agg_name, "
+// // //                        "c.anon_swp_name, "
 
-                       "c.salt_name, "
-                       "c.is_encrypted, "
-                       "c.can_be_null, "
+// // //                        "c.sec_level_det, "
+// // //                        "c.sec_level_ope, "
 
-                       "c.has_salt "
+// // //                        "c.salt_name, "
+// // //                        "c.is_encrypted, "
+// // //                        "c.can_be_null, "
 
-                       //TODO: what do these fields do?
-                       //"c.ope_used, "
-                       //"c.agg_used, "
-                       //"c.search_used, "
+// // //                        "c.has_salt "
 
-                       "FROM proxy_db.column_info c, proxy_db.table_info t "
-                       "WHERE t.name = '" + origTableName + "'"
-                            " AND t.dbname = '" + dbname + "'"
-                            " AND c.table_id = t.id";
+// // //                        //TODO: what do these fields do?
+// // //                        //"c.ope_used, "
+// // //                        //"c.agg_used, "
+// // //                        //"c.search_used, "
 
-            DBResult * dbres;
-            assert(ps.e_conn->execute(q, dbres));
+// // //                        "FROM proxy_db.column_info c, proxy_db.table_info t "
+// // //                        "WHERE t.name = '" + origTableName + "'"
+// // //                             " AND t.dbname = '" + dbname + "'"
+// // //                             " AND c.table_id = t.id";
 
-            ScopedMySQLRes r(dbres->n);
-            MYSQL_ROW row;
-            while ((row = mysql_fetch_row(r.res()))) {
-                unsigned long *l = mysql_fetch_lengths(r.res());
-                assert(l != NULL);
+// // //             DBResult * dbres;
+// // //             assert(ps.e_conn->execute(q, dbres));
 
-                FieldMeta *fm = new FieldMeta;
-                fm->tm = tm;
+// // //             ScopedMySQLRes r(dbres->n);
+// // //             MYSQL_ROW row;
+// // //             while ((row = mysql_fetch_row(r.res()))) {
+// // //                 unsigned long *l = mysql_fetch_lengths(r.res());
+// // //                 assert(l != NULL);
 
-                size_t i = 0, j = 0;
-                fm->fname = string(row[i++], l[j++]);
+// // //                 FieldMeta *fm = new FieldMeta;
+// // //                 fm->tm = tm;
 
-                bool has_ope = string(row[i++], l[j++]) == "1";
-                bool has_agg = string(row[i++], l[j++]) == "1";
-                bool has_swp = string(row[i++], l[j++]) == "1";
+// // //                 size_t i = 0, j = 0;
+// // //                 fm->fname = string(row[i++], l[j++]);
 
-                if (fm->onions.size() > 0) {
-                    fm->onions[oDET]->onionname = string(row[i++], l[j++]);
+// // //                 bool has_ope = string(row[i++], l[j++]) == "1";
+// // //                 bool has_agg = string(row[i++], l[j++]) == "1";
+// // //                 bool has_swp = string(row[i++], l[j++]) == "1";
 
-                    if (has_ope) { fm->onions[oOPE]->onionname = string(row[i++], l[j++]); }
-                    else         { i++; j++; }
+// // //                 if (fm->onions.size() > 0) {
+// // //                     fm->onions[oDET]->onionname = string(row[i++], l[j++]);
 
-                    if (has_agg) { fm->onions[oAGG]->onionname = string(row[i++], l[j++]); }
-                    else         { i++; j++; }
+// // //                     if (has_ope) { fm->onions[oOPE]->onionname = string(row[i++], l[j++]); }
+// // //                     else         { i++; j++; }
 
-                    if (has_swp) { fm->onions[oSWP]->onionname = string(row[i++], l[j++]); }
-                    else         { i++; j++; }
+// // //                     if (has_agg) { fm->onions[oAGG]->onionname = string(row[i++], l[j++]); }
+// // //                     else         { i++; j++; }
 
-                    OnionLevelMap om;
+// // //                     if (has_swp) { fm->onions[oSWP]->onionname = string(row[i++], l[j++]); }
+// // //                     else         { i++; j++; }
 
-                    om[oDET] = string_to_sec_level(string(row[i++], l[j++]));
+// // //                     OnionLevelMap om;
 
-                    if (has_ope) { om[oOPE] = string_to_sec_level(string(row[i++], l[j++])); }
-                    else         { i++; j++; }
+// // //                     om[oDET] = string_to_sec_level(string(row[i++], l[j++]));
 
-                    if (has_agg) { om[oAGG] = SECLEVEL::HOM; }
+// // //                     if (has_ope) { om[oOPE] = string_to_sec_level(string(row[i++], l[j++])); }
+// // //                     else         { i++; j++; }
 
-                    if (has_swp) { om[oSWP] = SECLEVEL::SEARCH; }
+// // //                     if (has_agg) { om[oAGG] = SECLEVEL::HOM; }
 
-                    fm->encdesc = EncDesc(om);
+// // //                     if (has_swp) { om[oSWP] = SECLEVEL::SEARCH; }
 
-                    fm->salt_name = string(row[i++], l[j++]);
-                }
+// // //                     fm->encdesc = EncDesc(om);
 
-                i++; j++; // is_encrypted
-                i++; j++; // can_be_null
+// // //                     fm->salt_name = string(row[i++], l[j++]);
+// // //                 }
 
-                fm->has_salt = string(row[i++], l[j++]) == "1";
+// // //                 i++; j++; // is_encrypted
+// // //                 i++; j++; // can_be_null
 
-                tm->fieldNames.push_back(fm->fname);
-                tm->fieldMetaMap[fm->fname] = fm;
-            }
-        }
-    }
-    printEmbeddedState(ps);
-}
+// // //                 fm->has_salt = string(row[i++], l[j++]) == "1";
+
+// // //                 tm->fieldNames.push_back(fm->fname);
+// // //                 tm->fieldMetaMap[fm->fname] = fm;
+// // //             }
+// // //         }
+// // //     } */
+// // //     /*}
+// // // */
+
+// // // static void
+// // // removeTest() {
+  
+// // // }
 
 //l gets updated to the new level
 static void
@@ -3309,7 +3313,7 @@ Rewriter::Rewriter(ConnectionInfo ci,
 
     ps.schema = new SchemaInfo();
     ps.totalTables = 0;
-    initSchema(ps);
+    //initSchema(ps);
 
     loadUDFs(ps.conn);
 
