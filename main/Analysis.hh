@@ -123,7 +123,6 @@ const EncSet ADD_EncSet = {
         }
 };
 
-// not sure if needed 
 const EncSet PROD_EncSet = {
         {
 	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},

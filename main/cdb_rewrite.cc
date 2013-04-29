@@ -643,18 +643,18 @@ typical_gather(Analysis & a, Item_func * i,
 	                    intersect(childr_rp[2]->es_out);
 
     if (solution.empty()) {
-	cerr << "crypto schemes does not support this query BECAUSE " << i << "NEEDS " << my_es << "\n" \
-	     << " BECAUSE " << why << "\n" \
-	     << " AND children have:  " << r1 << r2 << "\n";
-	assert(false);
+	    cerr << "crypto schemes does not support this query BECAUSE " << i << "NEEDS " << my_es << "\n" \
+	        << " BECAUSE " << why << "\n" \
+	        << " AND children have:  " << r1 << r2 << "\n";
+	    assert(false);
     }
 
     EncSet out_es;
     if (encset_from_intersection) {
-	assert_s(solution.singleton(), "cannot use basic_gather with more outgoing encsets");
-	out_es = solution;
+	    assert_s(solution.singleton(), "cannot use basic_gather with more outgoing encsets");
+	    out_es = solution;
     } else {
-	out_es = PLAIN_EncSet;
+	    out_es = PLAIN_EncSet;
     }
 
     my_r = reason(out_es, why, i);
@@ -1301,31 +1301,30 @@ static class ANON : public CItemSubtypeIT<Item_cache, Item::Type::CACHE_ITEM> {
 template<Item_func::Functype FT, class IT>
 class CItemCompare : public CItemSubtypeFT<Item_func, FT> {
     virtual RewritePlan * do_gather_type(Item_func *i, reason &tr, Analysis & a) const {
-	LOG(cdb_v) << "CItemCompare (L1139) do_gather func " << *i;
+	    LOG(cdb_v) << "CItemCompare (L1139) do_gather func " << *i;
 
         EncSet my_es;
-	string why = "";
+	    string why = "";
 
         if (FT == Item_func::Functype::EQ_FUNC ||
             FT == Item_func::Functype::EQUAL_FUNC ||
             FT == Item_func::Functype::NE_FUNC) {
             my_es = EQ_EncSet;
-	    why = "compare equality";
+	        why = "compare equality";
         } else {
             my_es = ORD_EncSet;
-	    why = "compare order";
+	        why = "compare order";
         }
 
-	Item ** args = i->arguments();
-	assert_s(i->argument_count() == 2, "expected two arguments for comparison");
+	    Item ** args = i->arguments();
+	    assert_s(i->argument_count() == 2, "expected two arguments for comparison");
         if (!args[0]->const_item() && !args[1]->const_item()) {
             why = why + "; join";
-	    cerr << "join";
-	    my_es = JOIN_EncSet;
-	}
+	        cerr << "join";
+	        my_es = JOIN_EncSet;
+	    }
 
-	return typical_gather(a, i, my_es, why, tr, false, PLAIN_EncSet);
-
+	    return typical_gather(a, i, my_es, why, tr, false, PLAIN_EncSet);
     }
 
     virtual Item * do_optimize_type(Item_func *i, Analysis & a) const {
@@ -1430,7 +1429,7 @@ static class ANON : public CItemSubtypeFT<Item_func_get_system_var, Item_func::F
 template<const char *NAME>
 class CItemAdditive : public CItemSubtypeFN<Item_func_additive_op, NAME> {
     virtual RewritePlan * do_gather_type(Item_func_additive_op *i, reason &tr, Analysis & a) const {
-	return typical_gather(a, i, ADD_EncSet, "additive", tr, true);
+	    return typical_gather(a, i, ADD_EncSet, "additive", tr, true);
     }
     virtual Item * do_optimize_type(Item_func_additive_op *i, Analysis & a) const {
         return do_optimize_type_self_and_args(i, a);
@@ -2188,6 +2187,25 @@ static class ANON : public CItemSubtypeST<Item_func_group_concat, Item_sum::Sumf
     }
     // TODO(stephentu): figure out how to rob the arg fields for optimization
 } ANON;
+
+template<Item_prod::Prodfunctype PT>
+class CItemProd : public CItemSubtypePT<Item_prod_prod, PT> {
+    virtual RewritePlan * do_gather_type(Item_prod_prod *i, reason &tr, Analysis & a) const {
+        // TODO(finche): check that this is valid implementation
+
+    	LOG(cdb_v) << "gather Item_prod_prod " << *i;
+
+        EncSet my_es = PROD_EncSet;
+	    string why = "multiplication";
+
+	    Item ** args = i->arguments();
+	    assert_s(i->argument_count() == 2, "expected two arguments for comparison");
+
+	    return typical_gather(a, i, my_es, why, tr, false, PLAIN_EncSet);
+    }
+};
+
+static CItemProd<Item_prod::Prodfunctype::PROD_FUNC> ANON;
 
 static class ANON : public CItemSubtypeFT<Item_char_typecast, Item_func::Functype::CHAR_TYPECAST_FUNC> {
     virtual RewritePlan * do_gather_type(Item_char_typecast *i, reason &tr, Analysis & a) const {
