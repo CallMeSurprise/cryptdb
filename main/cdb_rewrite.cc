@@ -588,17 +588,6 @@ static class CItemSumFuncDir : public CItemTypeDir<Item_sum::Sumfunctype> {
     }
 } sumFuncTypes;
 
-// Product handler
-static class CItemProdFuncDir : public CItemTypeDir<Item_prod::Prodfunctype> {
-    CItemType *lookup(Item *i) const {
-        return do_lookup(i, ((Item_prod *) i)->prod_func(), "prodfunc type");
-    }
- public:
-    CItemProdFuncDir() {
-        itemTypes.reg(Item::Type::PROD_FUNC_ITEM, this);
-    }
-} prodFuncTypes;
-
 static class CItemFuncNameDir : public CItemTypeDir<std::string> {
     CItemType *lookup(Item *i) const {
         return do_lookup(i, ((Item_func *) i)->func_name(), "func name");
@@ -936,13 +925,6 @@ template<class T, Item_sum::Sumfunctype TYPE>
 class CItemSubtypeST : public CItemSubtype<T> {
  public:
     CItemSubtypeST() { sumFuncTypes.reg(TYPE, this); }
-};
-
-// Product handler
-template<class T, Item_prod::Prodfunctype TYPE> 
-class CItemSubtypePT : public CItemSubtype<T> {
-  public:
-    CItemSubtypePT() { prodFuncTypes.reg(TYPE, this); } 
 };
 
 template<class T, const char *TYPE>
@@ -2187,9 +2169,9 @@ static class ANON : public CItemSubtypeST<Item_func_group_concat, Item_sum::Sumf
     // TODO(stephentu): figure out how to rob the arg fields for optimization
 } ANON;
 
-template<Item_prod::Prodfunctype PT>
-class CItemProd : public CItemSubtypePT<Item_prod_prod, PT> {
-    virtual RewritePlan * do_gather_type(Item_prod_prod *i, reason &tr, Analysis & a) const {
+template<Item_sum::Sumfunctype SFT>
+class CItemProd : public CItemSubtypeST<Item_sum_sum, SFT> {
+    virtual RewritePlan * do_gather_type(Item_sum_sum *i, reason &tr, Analysis & a) const {
     	LOG(cdb_v) << "gather Item_prod_prod " << *i;
         
         assert_s(i->get_arg_count() == 1, "expected one argument for prod");
@@ -2218,7 +2200,7 @@ class CItemProd : public CItemSubtypePT<Item_prod_prod, PT> {
         return new RewritePlanOneOLK(return_es, olk, childr_rp, tr); ;
     }
 
-    virtual Item * do_rewrite_type(Item_prod_prod * i,
+    virtual Item * do_rewrite_type(Item_sum_sum * i,
 				   const OLK & constr, const RewritePlan * rp,
 				   Analysis & a) const {
 
@@ -2234,7 +2216,7 @@ class CItemProd : public CItemSubtypePT<Item_prod_prod, PT> {
     }
 };
 
-static CItemProd<Item_prod::Prodfunctype::PROD_FUNC> ANON;
+static CItemProd<Item_sum:Sumfunctype::PROD_FUNC> ANON;
 
 static class ANON : public CItemSubtypeFT<Item_char_typecast, Item_func::Functype::CHAR_TYPECAST_FUNC> {
     virtual RewritePlan * do_gather_type(Item_char_typecast *i, reason &tr, Analysis & a) const {
