@@ -2169,9 +2169,9 @@ static class ANON : public CItemSubtypeST<Item_func_group_concat, Item_sum::Sumf
     // TODO(stephentu): figure out how to rob the arg fields for optimization
 } ANON;
 
-template<Item_sum::Sumfunctype SFT>
-class CItemProd : public CItemSubtypeST<Item_sum_sum, SFT> {
-    virtual RewritePlan * do_gather_type(Item_sum_sum *i, reason &tr, Analysis & a) const {
+template<const char *NAME>
+class CItemProd : public CItemSubtypeFN<Item_func, NAME> {
+    virtual RewritePlan * do_gather_type(Item_func *i, reason &tr, Analysis & a) const {
     	LOG(cdb_v) << "gather Item_prod_prod " << *i;
         
         assert_s(i->get_arg_count() == 1, "expected one argument for prod");
@@ -2200,7 +2200,7 @@ class CItemProd : public CItemSubtypeST<Item_sum_sum, SFT> {
         return new RewritePlanOneOLK(return_es, olk, childr_rp, tr); ;
     }
 
-    virtual Item * do_rewrite_type(Item_sum_sum * i,
+    virtual Item * do_rewrite_type(Item_func * i,
 				   const OLK & constr, const RewritePlan * rp,
 				   Analysis & a) const {
 
@@ -2216,7 +2216,10 @@ class CItemProd : public CItemSubtypeST<Item_sum_sum, SFT> {
     }
 };
 
-static CItemProd<Item_sum:Sumfunctype::PROD_FUNC> ANON;
+//static CItemProd<Item_sum::Sumfunctype::UDF_SUM_FUNC> ANON;
+extern const char str_prod[] = "prod";
+
+static CItemProd<str_prod> ANON;
 
 static class ANON : public CItemSubtypeFT<Item_char_typecast, Item_func::Functype::CHAR_TYPECAST_FUNC> {
     virtual RewritePlan * do_gather_type(Item_char_typecast *i, reason &tr, Analysis & a) const {
