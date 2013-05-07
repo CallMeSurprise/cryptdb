@@ -1448,6 +1448,22 @@ static CItemAdditive<str_plus> ANON;
 extern const char str_minus[] = "-";
 static CItemAdditive<str_minus> ANON;
 
+/*
+* Implementation for SELECT x*y
+*/
+template<const char *NAME>
+class CItemMultiplicative : public CItemSubtypeFN<Item_func, NAME> {
+    virtual RewritePlan * do_gather_type(Item_func *i, reason &tr, Analysis & a) const {
+	UNIMPLEMENTED;
+    }
+    virtual Item * do_optimize_type(Item_func *i, Analysis & a) const {
+        return do_optimize_type_self_and_args(i, a);
+    }
+};
+
+extern const char str_mul[] = "*";
+static CItemMultiplicative<str_mul> ANON;
+
 template<const char *NAME>
 class CItemMath : public CItemSubtypeFN<Item_func, NAME> {
     virtual RewritePlan * do_gather_type(Item_func *i, reason &tr, Analysis & a) const {
@@ -1461,9 +1477,6 @@ class CItemMath : public CItemSubtypeFN<Item_func, NAME> {
         return do_optimize_type_self_and_args(i, a);
     }
 };
-
-extern const char str_mul[] = "*";
-static CItemMath<str_mul> ANON;
 
 extern const char str_div[] = "/";
 static CItemMath<str_div> ANON;
@@ -2168,58 +2181,6 @@ static class ANON : public CItemSubtypeST<Item_func_group_concat, Item_sum::Sumf
     }
     // TODO(stephentu): figure out how to rob the arg fields for optimization
 } ANON;
-
-template<const char *NAME>
-class CItemProd : public CItemSubtypeFN<Item_func, NAME> {
-    virtual RewritePlan * do_gather_type(Item_func *i, reason &tr, Analysis & a) const {
-    	LOG(cdb_v) << "gather Item_prod_prod " << *i;
-        
-        assert_s(i->get_arg_count() == 1, "expected one argument for prod");
-        Item * child_item = i->get_arg(0);
-        reason child_r;
-        RewritePlan ** childr_rp = new RewritePlan*[1];
-        RewritePlan * child_rp = gather(child_item, child_r, a);
-        childr_rp[0] = child_rp;
-        EncSet child_es = child_rp->es_out;
-
-        if (i->has_with_distinct()) {
-            UNIMPLEMENTED;
-        }
-
-        EncSet my_es = PROD_EncSet;
-
-        EncSet solution = my_es.intersect(child_es);
-
-        check_if_empty(solution, i, my_es, child_r);
-
-        OLK olk = solution.chooseOne();
-
-        EncSet return_es = EncSet(olk);
-        tr = reason(return_es, "multiplication", i);
-
-        return new RewritePlanOneOLK(return_es, olk, childr_rp, tr); ;
-    }
-
-    virtual Item * do_rewrite_type(Item_func * i,
-				   const OLK & constr, const RewritePlan * rp,
-				   Analysis & a) const {
-
-	    LOG(cdb_v) << "Item_prod_prod rewrite " << *i;
-
-	    list<Item *> args = rewrite_agg_args(i, constr, (RewritePlanOneOLK *)rp, a, 1);
-
-	    FieldMeta * fm = constr.key;
-	    EncLayer * el = getAssert(fm->onions, oELG, "onion oELG not in onions")->layers.back();
-	    assert_s(el->level() == SECLEVEL::ELG, "incorrect onion level on onion oELG");
-	    
-        return ((ElGamal *)el)->prodUDA(args.front());
-    }
-};
-
-//static CItemProd<Item_sum::Sumfunctype::UDF_SUM_FUNC> ANON;
-extern const char str_prod[] = "prod";
-
-static CItemProd<str_prod> ANON;
 
 static class ANON : public CItemSubtypeFT<Item_char_typecast, Item_func::Functype::CHAR_TYPECAST_FUNC> {
     virtual RewritePlan * do_gather_type(Item_char_typecast *i, reason &tr, Analysis & a) const {
