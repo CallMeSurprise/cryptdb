@@ -1,0 +1,96 @@
+#!/usr/bin/python
+
+import MySQLdb
+
+prompt = "CryptDB-ElG-Demo$ "
+tables = {}
+table_fields = {}
+
+def enc(v):
+	return v 
+
+def dec(c):
+	return c 
+
+def create_rewrite(s):
+	#CREATE table tablename (field type, field type...);
+	(table, fields) = s.split(" (")
+	table = table.replace("CREATE table ", "").strip()
+	fields = fields[:fields.index(")")].split(", ")
+	field_list = [tuple(f.split(" ")) for f in fields]
+	anon_table = "table" + str(len(tables.keys()))
+	tables[table] = anon_table
+	anon_fields = {}
+	for (fname, ftype) in field_list:
+		if (ftype != "integer"):
+			print "this demo is for ints only"
+			return None
+		else:
+			anon_fname = "field"+str(len(anon_fields))+"ELG"
+			anon_fields[fname] = anon_fname
+	table_fields[table] = anon_fields
+	cmd = "CREATE table " + anon_table + " ("
+	for fname in anon_fields.keys():
+		cmd += anon_fields[fname] + " binary, " #check if actually bin
+	cmd = cmd[:len(cmd)-2] + ");"	
+	return cmd
+
+def drop_rewrite(s):
+	#DROP table tablename;
+	table = s.split(" ")[2]
+	anon_table = tables[table]
+	return "DROP table " + anon_table + ";"
+
+def insert_rewrite(s):
+	#INSERT into tablename values();
+	s = s.replace("INSERT into ", "")
+	(table, vals) = s.split(" values(")
+	anon_table = tables[table.strip()]
+	vals = vals.replace(");", "").split(",")
+	cmd = "INSERT into " + anon_table + " values("
+	for val in vals:
+		cmd += enc(val) + ", "
+	cmd = cmd[:len(cmd)-2] + ");"	
+	return cmd	
+
+def select_rewrite(s):
+	table = s.split(" ");
+	table = table[len(table)-1].replace(";", "")
+	anon_table = tables[table]
+	#SELECT * from tablename;
+	if "SELECT *" in s:
+		return "SELECT * from " + anon_table + ";"
+	#SELECT field1*field2 from tablename;
+	else:
+		fields = s.split(" ")[1].split("*")
+		anon_fields = [table_fields[table][field] for field in fields]
+		return "SELECT "+"*".join(anon_fields) + " from " + anon_table+";"
+
+def rewrite(s):
+	if ("CREATE" in s):
+		return create_rewrite(s)
+	elif("DROP" in s):
+		return drop_rewrite(s)
+	elif ("INSERT" in s):
+		return insert_rewrite(s)
+	elif ("SELECT" in s):
+		return select_rewrite(s)
+	else:
+		print "this command is not supported"
+		return None	
+
+if __name__ == '__main__':
+	db = MySQLdb.connect(host="localhost", port=3306, user="root", passwd="letmein", db="cryptdbtest")
+	cursor = db.cursor()
+	try:
+		while True:
+			cmd_str = raw_input(prompt)
+			print "Rewriting ", cmd_str
+			cmd_str = rewrite(cmd_str)
+			print cmd_str
+			if (cmd_str != None):
+				cursor.execute(cmd_str)
+				print cursor.fetchall()
+	except EOFError:
+		db.close()
+		print "\nGoodbye!"
