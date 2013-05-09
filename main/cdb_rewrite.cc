@@ -1449,16 +1449,40 @@ extern const char str_minus[] = "-";
 static CItemAdditive<str_minus> ANON;
 
 /*
-* Implementation for SELECT x*y
+* Implementation for SELECT x*val
 */
 template<const char *NAME>
-class CItemMultiplicative : public CItemSubtypeFN<Item_func, NAME> {
-    virtual RewritePlan * do_gather_type(Item_func *i, reason &tr, Analysis & a) const {
-	UNIMPLEMENTED;
+class CItemMultiplicative : public CItemSubtypeFN<Item_func_mul, NAME> {
+    virtual RewritePlan * do_gather_type(Item_func_mul *i, reason &tr, Analysis & a) const {
+	    return typical_gather(a, i, PROD_EncSet, "multiplicative", tr, true);
     }
-    virtual Item * do_optimize_type(Item_func *i, Analysis & a) const {
+    virtual Item * do_optimize_type(Item_func_mul *i, Analysis & a) const {
         return do_optimize_type_self_and_args(i, a);
     }
+
+    virtual Item * do_rewrite_type(Item_func_mul *i,
+				   const OLK & constr, const RewritePlan * _rp,
+				   Analysis & a) const {
+        LOG(cdb_v) << "do_rewrite_type Item_func_mul" << *i << " with constr " << constr; //change from Item_func_additive
+
+	//rewrite children
+	assert_s(i->argument_count() == 2, " expecting two arguments for multiplicative operator ");
+	Item **args = i->arguments();
+
+	RewritePlanOneOLK * rp = (RewritePlanOneOLK *) _rp;
+
+        cerr << "Rewrite plan is " << rp << "\n";
+
+	Item * arg0 = itemTypes.do_rewrite(args[0],
+					   rp->olk, rp->childr_rp[0], a);
+	Item * arg1 = itemTypes.do_rewrite(args[1],
+					   rp->olk, rp->childr_rp[1], a);
+
+	EncLayer *el = getAssert(constr.key->onions, oELG)->layers.back();
+	assert_s(el->level() == SECLEVEL::ELG, "incorrect onion level on onion oELG");
+	return ((ElGamal*)el)->prodUDF(arg0, arg1); 
+
+	}
 };
 
 extern const char str_mul[] = "*";

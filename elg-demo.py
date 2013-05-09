@@ -6,6 +6,12 @@ prompt = "CryptDB-ElG-Demo$ "
 tables = {}
 table_fields = {}
 
+def setup(cursor):
+	cmd = "DROP FUNCTION IF EXISTS func_prod"
+	cursor.execute(cmd)
+	cmd = "CREATE FUNCTION func_prod RETURNS INTEGER SONAME 'edb.so';"
+	cursor.execute(cmd)	
+
 def enc(v):
 	return v 
 
@@ -62,9 +68,10 @@ def select_rewrite(s):
 		return "SELECT * from " + anon_table + ";"
 	#SELECT field1*field2 from tablename;
 	else:
-		fields = s.split(" ")[1].split("*")
-		anon_fields = [table_fields[table][field] for field in fields]
-		return "SELECT "+"*".join(anon_fields) + " from " + anon_table+";"
+		args = s.split(" ")[1].split("*")
+		anon_field = table_fields[table][args[0]]
+		val = enc(args[1])
+		return "SELECT func_prod(" + anon_field + "," + val + " from " + anon_table+";"
 
 def rewrite(s):
 	if ("CREATE" in s):
@@ -82,6 +89,7 @@ def rewrite(s):
 if __name__ == '__main__':
 	db = MySQLdb.connect(host="localhost", port=3306, user="root", passwd="letmein", db="cryptdbtest")
 	cursor = db.cursor()
+	setup(cursor)
 	try:
 		while True:
 			cmd_str = raw_input(prompt)

@@ -61,6 +61,7 @@ public:
     Item * decrypt(Item * ctext, uint64_t IV, const std::string &k = "");
 //        Item * decryptUDF(Item * col, Item * ivcol);
     Item * prodUDA(Item * expr, const std::string &k = "");
+    Item * prodUDF(Item * i1, Item * i2, const std::string &k = "");
 
     void setKey(const std::string &key);
     void unSetKey(const std::string &key);

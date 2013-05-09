@@ -75,6 +75,10 @@ my_bool  agg_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error);
 char *   agg(UDF_INIT *initid, UDF_ARGS *args, char *result,
              unsigned long *length, char *is_null, char *error);
 
+void     func_add_set_deinit(UDF_INIT *initid);
+char *   func_add_set(UDF_INIT *initid, UDF_ARGS *args, char *result,
+                      unsigned long *length, char *is_null, char *error);
+
 // product UDF 
 my_bool  prod_init(UDF_INIT *initid, UDF_ARGS *args, char *message);
 void     prod_deinit(UDF_INIT *initid);
@@ -83,8 +87,9 @@ my_bool  prod_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error);
 char *   prod(UDF_INIT *initid, UDF_ARGS *args, char *result,
              unsigned long *length, char *is_null, char *error);
 
-void     func_add_set_deinit(UDF_INIT *initid);
-char *   func_add_set(UDF_INIT *initid, UDF_ARGS *args, char *result,
+// calculate product of column and value
+void     func_prod_deinit(UDF_INIT *initid);
+char *   func_prod(UDF_INIT *initid, UDF_ARGS *args, char *result,
                       unsigned long *length, char *is_null, char *error);
 }
 
@@ -654,8 +659,43 @@ func_add_set_deinit(UDF_INIT *initid)
         free(initid->ptr);
 }
 
+
 char *
 func_add_set(UDF_INIT *initid, UDF_ARGS *args,
+             char *result, unsigned long *length,
+             char *is_null, char *error)
+{
+    if (initid->ptr)
+        free(initid->ptr);
+
+    uint64_t n2len = args->lengths[2];
+    
+    ZZ field, val, n2;
+    ZZFromBytes(field, (const uint8_t *) args->args[0], args->lengths[0]);
+    ZZFromBytes(val, (const uint8_t *) args->args[1], args->lengths[1]);
+    ZZFromBytes(n2, (const uint8_t *) args->args[2], args->lengths[2]);
+
+    ZZ res;
+    MulMod(res, field, val, n2);
+
+    void *rbuf = malloc((size_t)n2len);
+    initid->ptr = (char *) rbuf;
+    BytesFromZZ((uint8_t *) rbuf, res, (size_t)n2len);
+
+    *length = (long unsigned int) n2len;
+    return initid->ptr;
+}
+
+// For product of column with value
+void
+func_prod_deinit(UDF_INIT *initid)
+{
+    if (initid->ptr)
+        free(initid->ptr);
+}
+
+char *
+func_prod(UDF_INIT *initid, UDF_ARGS *args,
              char *result, unsigned long *length,
              char *is_null, char *error)
 {
@@ -678,7 +718,6 @@ func_add_set(UDF_INIT *initid, UDF_ARGS *args,
     *length = (long unsigned int) n2len;
     return initid->ptr;
 }
-
 
     
 } /* extern "C" */

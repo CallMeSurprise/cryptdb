@@ -711,6 +711,20 @@ static udf_func u_prod_a = {
     0L,
 };
 
+static udf_func u_prod_f = {
+    LEXSTRING("func_prod"),
+    STRING_RESULT,
+    UDFTYPE_FUNCTION,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    0L,
+};
+
 Item *
 ElGamal::prodUDA(Item * expr, const string &k) {
     setKey(k);
@@ -719,6 +733,19 @@ ElGamal::prodUDA(Item * expr, const string &k) {
 //    l.push_back(ZZToItemStr(sk.hompubkey()));
     unSetKey(k);
     return new Item_func_udf_str(&u_prod_a, l);
+}
+
+
+Item *
+ElGamal::prodUDA(Item * i1, Item * i2, const string &k) {
+    setKey(k);
+    List<Item> l;
+    l.push_back(i1);
+    l.push_back(i2);
+//    l.push_back(ZZToItemStr(sk.hompubkey()));
+    unSetKey(k);
+
+    return new Item_func_udf_str(&u_prod_f, l);
 }
 
 /******* SEARCH **************************/
@@ -949,5 +976,7 @@ const std::vector<udf_func*> udf_list = {
     &u_decDETStr,
     &u_sum_f,
     &u_sum_a,
-    &u_search
+    &u_search,
+    &u_prod_f,
+    &u_prod_a
 };
