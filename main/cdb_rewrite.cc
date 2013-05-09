@@ -1463,7 +1463,7 @@ class CItemMultiplicative : public CItemSubtypeFN<Item_func_mul, NAME> {
     virtual Item * do_rewrite_type(Item_func_mul *i,
 				   const OLK & constr, const RewritePlan * _rp,
 				   Analysis & a) const {
-        LOG(cdb_v) << "do_rewrite_type Item_func_mul" << *i << " with constr " << constr; //change from Item_func_additive
+        LOG(cdb_v) << "do_rewrite_type Item_func_mul" << *i << " with constr " << constr; 
 
 	//rewrite children
 	assert_s(i->argument_count() == 2, " expecting two arguments for multiplicative operator ");

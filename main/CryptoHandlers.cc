@@ -737,7 +737,7 @@ ElGamal::prodUDA(Item * expr, const string &k) {
 
 
 Item *
-ElGamal::prodUDA(Item * i1, Item * i2, const string &k) {
+ElGamal::prodUDF(Item * i1, Item * i2, const string &k) {
     setKey(k);
     List<Item> l;
     l.push_back(i1);
