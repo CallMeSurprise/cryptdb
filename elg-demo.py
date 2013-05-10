@@ -7,9 +7,9 @@ tables = {}
 table_fields = {}
 
 def setup(cursor):
-	cmd = "DROP FUNCTION IF EXISTS func_prod"
+	cmd = "DROP FUNCTION IF EXISTS prod"
 	cursor.execute(cmd)
-	cmd = "CREATE FUNCTION func_prod RETURNS INTEGER SONAME 'edb.so';"
+	cmd = "CREATE FUNCTION prod RETURNS INTEGER SONAME 'edb.so';"
 	cursor.execute(cmd)	
 
 def enc(v):
@@ -41,12 +41,6 @@ def create_rewrite(s):
 	cmd = cmd[:len(cmd)-2] + ");"	
 	return cmd
 
-def drop_rewrite(s):
-	#DROP table tablename;
-	table = s.split(" ")[2]
-	anon_table = tables[table]
-	return "DROP table " + anon_table + ";"
-
 def insert_rewrite(s):
 	#INSERT into tablename values();
 	s = s.replace("INSERT into ", "")
@@ -71,13 +65,13 @@ def select_rewrite(s):
 		args = s.split(" ")[1].split("*")
 		anon_field = table_fields[table][args[0]]
 		val = enc(args[1])
-		return "SELECT func_prod(" + anon_field + "," + val + " from " + anon_table+";"
+		mod = str(10) #needs to be enc dependent
+		return "SELECT prod(" + anon_field + "," + val + \
+			"," + mod + ") from " + anon_table+";"
 
 def rewrite(s):
 	if ("CREATE" in s):
 		return create_rewrite(s)
-	elif("DROP" in s):
-		return drop_rewrite(s)
 	elif ("INSERT" in s):
 		return insert_rewrite(s)
 	elif ("SELECT" in s):
