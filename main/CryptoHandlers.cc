@@ -700,7 +700,7 @@ HOM::sumUDF(Item * i1, Item * i2, const string &k) {
 static udf_func u_prod_f = {
     LEXSTRING("prod"),
     STRING_RESULT,
-    UDFTYPE_AGGREGATE,
+    UDFTYPE_FUNCTION,
     NULL,
     NULL,
     NULL,
