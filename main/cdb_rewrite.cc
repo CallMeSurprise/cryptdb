@@ -1454,13 +1454,14 @@ static CItemAdditive<str_minus> ANON;
 template<const char *NAME>
 class CItemMultiplicative : public CItemSubtypeFN<Item_func_mul, NAME> {
     virtual RewritePlan * do_gather_type(Item_func_mul *i, reason &tr, Analysis & a) const {
-	    return typical_gather(a, i, PROD_EncSet, "multiplicative", tr, true);
+	//    return typical_gather(a, i, PROD_EncSet, "multiplicative", tr, true);
+	UNIMPLEMENTED;
     }
     virtual Item * do_optimize_type(Item_func_mul *i, Analysis & a) const {
         return do_optimize_type_self_and_args(i, a);
     }
 
-    virtual Item * do_rewrite_type(Item_func_mul *i,
+    /*virtual Item * do_rewrite_type(Item_func_mul *i,
 				   const OLK & constr, const RewritePlan * _rp,
 				   Analysis & a) const {
         LOG(cdb_v) << "do_rewrite_type Item_func_mul" << *i << " with constr " << constr; 
@@ -1482,7 +1483,7 @@ class CItemMultiplicative : public CItemSubtypeFN<Item_func_mul, NAME> {
 	assert_s(el->level() == SECLEVEL::ELG, "incorrect onion level on onion oELG");
 	return ((ElGamal*)el)->prodUDF(arg0, arg1); 
 
-	}
+	}*/
 };
 
 extern const char str_mul[] = "*";

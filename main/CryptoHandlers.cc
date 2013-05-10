@@ -73,7 +73,7 @@ Item *
 ElGamal::decrypt(Item * ctext, uint64_t IV, const string &k) {
     setKey(k);
     uint64_t c = static_cast<Item_int*>(ctext)->value;
-    LOG(encl) << "RND_int decrypt " << c << " IV " << IV;
+    LOG(encl) << "ElGamal decrypt " << c << " IV " << IV;
     return new Item_int((ulonglong) c);
 }
 
@@ -697,7 +697,7 @@ HOM::sumUDF(Item * i1, Item * i2, const string &k) {
 
 /****PRODUCT*******/
 
-static udf_func u_prod_a = {
+static udf_func u_prod_f = {
     LEXSTRING("prod"),
     STRING_RESULT,
     UDFTYPE_AGGREGATE,
@@ -710,31 +710,6 @@ static udf_func u_prod_a = {
     NULL,
     0L,
 };
-
-static udf_func u_prod_f = {
-    LEXSTRING("func_prod"),
-    STRING_RESULT,
-    UDFTYPE_FUNCTION,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    0L,
-};
-
-Item *
-ElGamal::prodUDA(Item * expr, const string &k) {
-    setKey(k);
-    List<Item> l;
-    l.push_back(expr);
-//    l.push_back(ZZToItemStr(sk.hompubkey()));
-    unSetKey(k);
-    return new Item_func_udf_str(&u_prod_a, l);
-}
-
 
 Item *
 ElGamal::prodUDF(Item * i1, Item * i2, const string &k) {
@@ -977,6 +952,5 @@ const std::vector<udf_func*> udf_list = {
     &u_sum_f,
     &u_sum_a,
     &u_search,
-    &u_prod_f,
-    &u_prod_a
+    &u_prod_f
 };

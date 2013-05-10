@@ -54,13 +54,12 @@ class ElGamal : public EncLayer {
 public:
     ElGamal(Create_field *, PRNG* prng);
 
-    SECLEVEL level() { return SECLEVEL::PLAINVAL; } 
+    SECLEVEL level() { return SECLEVEL::ELG; } 
     Create_field* newCreateField(std::string anonname = "");
 
     Item * encrypt(Item * ptext, uint64_t IV, const std::string &k = "");
     Item * decrypt(Item * ctext, uint64_t IV, const std::string &k = "");
 //        Item * decryptUDF(Item * col, Item * ivcol);
-    Item * prodUDA(Item * expr, const std::string &k = "");
     Item * prodUDF(Item * i1, Item * i2, const std::string &k = "");
 
     void setKey(const std::string &key);

@@ -80,16 +80,8 @@ char *   func_add_set(UDF_INIT *initid, UDF_ARGS *args, char *result,
                       unsigned long *length, char *is_null, char *error);
 
 // product UDF 
-my_bool  prod_init(UDF_INIT *initid, UDF_ARGS *args, char *message);
 void     prod_deinit(UDF_INIT *initid);
-void     prod_clear(UDF_INIT *initid, char *is_null, char *error);
-my_bool  prod_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error);
 char *   prod(UDF_INIT *initid, UDF_ARGS *args, char *result,
-             unsigned long *length, char *is_null, char *error);
-
-// calculate product of column and value
-void     func_prod_deinit(UDF_INIT *initid);
-char *   func_prod(UDF_INIT *initid, UDF_ARGS *args, char *result,
                       unsigned long *length, char *is_null, char *error);
 }
 
@@ -579,77 +571,6 @@ agg(UDF_INIT *initid, UDF_ARGS *args, char *result,
     return (char *) as->rbuf;
 }
 
-// product UDF def
-struct prod_state {
-    ZZ product;
-    ZZ n2;
-    bool n2_set;
-    void *rbuf;
-};
-
-my_bool
-prod_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
-{
-    cerr << "in prod_init \n";
-    prod_state *ps = new prod_state();
-    ps->rbuf = malloc(Paillier_len_bytes); // change to ElG
-    initid->ptr = (char *) ps;
-    cerr << "returning from prod_init \n";
-    return 0;
-}
-
-void
-prod_deinit(UDF_INIT *initid)
-{
-    prod_state *ps = (prod_state *) initid->ptr;
-    free(ps->rbuf);
-    delete ps;
-}
-
-void
-prod_clear(UDF_INIT *initid, char *is_null, char *error)
-{
-    prod_state *ps = (prod_state *) initid->ptr;
-    ps->product = to_ZZ(1);
-    ps->n2_set = 0;
-}
-
-//args will be element to multiply, constant N2
-my_bool
-prod_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
-{
-    //cerr << "in agg_add \n";
-    prod_state *ps = (prod_state *) initid->ptr;
-    if (!ps->n2_set) {
-	    //cerr << "n2 length is " << args->lengths[1] << "\n";
-	    //cerr << "n2 first byte is " << (int)args->args[1][0] << "\n";
-	    ZZFromBytes(ps->n2, (const uint8_t *) args->args[1],
-                        args->lengths[1]);
-	    //cerr << "n2 is " << as->n2 << "\n";
-        ps->n2_set = 1;
-    }
-  
-    ZZ e;
-    ZZFromBytes(e, (const uint8_t *) args->args[0], args->lengths[0]);
-
-    //cerr << "element to add " << e << "\n";
-    MulMod(ps->product, ps->product, e, ps->n2);
-    //cerr << "sum so far " << as->sum << "\n";
-    return true;
-}
-
-char *
-prod(UDF_INIT *initid, UDF_ARGS *args, char *result,
-    unsigned long *length, char *is_null, char *error)
-{
-    prod_state *ps = (prod_state *) initid->ptr;
-    BytesFromZZ((uint8_t *) ps->rbuf, ps->product,
-                 Paillier_len_bytes); // change to ElG
-    *length = Paillier_len_bytes; // change to ElG
-    return (char *) ps->rbuf;
-}
-
-
 // for update with increment
 
 void
@@ -688,14 +609,14 @@ func_add_set(UDF_INIT *initid, UDF_ARGS *args,
 
 // For product of column with value
 void
-func_prod_deinit(UDF_INIT *initid)
+prod_deinit(UDF_INIT *initid)
 {
     if (initid->ptr)
         free(initid->ptr);
 }
 
 char *
-func_prod(UDF_INIT *initid, UDF_ARGS *args,
+prod(UDF_INIT *initid, UDF_ARGS *args,
              char *result, unsigned long *length,
              char *is_null, char *error)
 {
