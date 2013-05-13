@@ -4,6 +4,7 @@
 #include <crypto/prng.hh>
 #include <crypto/BasicCrypto.hh>
 #include <crypto/paillier.hh>
+#include <crypto/elgamal.hh>
 #include <crypto/ope.hh>
 #include <crypto/blowfish.hh>
 #include <parser/sql_utils.hh>
@@ -49,10 +50,10 @@ public:
     static EncLayer * encLayer(onion o, SECLEVEL sl, Create_field * cf, PRNG * key);
 };
 
-class ElGamal : public EncLayer { 
+class ELG : public EncLayer { 
 
 public:
-    ElGamal(Create_field *, PRNG* prng);
+    ELG(Create_field *, PRNG* prng);
 
     SECLEVEL level() { return SECLEVEL::ELG; } 
     Create_field* newCreateField(std::string anonname = "");
@@ -62,14 +63,12 @@ public:
 //        Item * decryptUDF(Item * col, Item * ivcol);
     Item * prodUDF(Item * i1, Item * i2, const std::string &k = "");
 
-    void setKey(const std::string &key);
-    void unSetKey(const std::string &key);
-
 private:
-    std::string key;
-    blowfish bf;
-    static const int key_bytes = 16;    
-    static const int ciph_size = 8;
+	static const uint nbits = 1024; //copied from Paillier
+	ElGamal sk;   
+ 
+	void setKey(const std::string &key);
+    void unSetKey(const std::string &key);
 };
 
 class RND_int : public EncLayer {

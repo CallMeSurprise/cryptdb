@@ -48,21 +48,24 @@ get_key_item(const string & key) {
 
 // ElGamal
 
-ElGamal::ElGamal(Create_field * f, PRNG * prng)
+ELG::ELG(Create_field * f, PRNG * prng)
     : EncLayer(f),
-      key(prng->rand_string(key_bytes)),
-      bf(key)
+      sk(ElGamal::keygen(prng, nbits))
 {
 }
 
 
 Create_field *
-ElGamal::newCreateField(string anonname) {
+ELG::newCreateField(string anonname) {
     return createFieldHelper(cf, ciph_size, MYSQL_TYPE_LONGLONG, anonname);
 }
 
+
+/*
+* TODO(finche): make enc/dec
+*/
 Item *
-ElGamal::encrypt(Item * ptext, uint64_t IV, const string &k) {
+ELG::encrypt(Item * ptext, uint64_t IV, const string &k) {
     setKey(k);
     uint64_t p = static_cast<Item_int *>(ptext)->value;
     LOG(encl) << "ElGamal encrypt " << p << " IV " << IV;
@@ -70,7 +73,7 @@ ElGamal::encrypt(Item * ptext, uint64_t IV, const string &k) {
 }
 
 Item *
-ElGamal::decrypt(Item * ctext, uint64_t IV, const string &k) {
+ELG::decrypt(Item * ctext, uint64_t IV, const string &k) {
     setKey(k);
     uint64_t c = static_cast<Item_int*>(ctext)->value;
     LOG(encl) << "ElGamal decrypt " << c << " IV " << IV;
@@ -78,22 +81,19 @@ ElGamal::decrypt(Item * ctext, uint64_t IV, const string &k) {
 }
 
 void
-ElGamal::setKey(const string &k) {
+ELG::setKey(const string &k) {
     if (k.empty()) {
         return;
     }
-    key = k;
-    bf = blowfish(key);
+	//left empty as in Paillier
 }
 
-//if we're using MultiPrinc, we don't want to keep a copy of a key around
 void
-ElGamal::unSetKey(const string &k) {
+ELG::unSetKey(const string &k) {
     if (k.empty()) {
         return;
     }
-    key = "";
-    //TODO: unset blowfish
+    //left empty as in Paillier
 }
 
 /****************** RND *********************/
@@ -712,7 +712,7 @@ static udf_func u_prod_f = {
 };
 
 Item *
-ElGamal::prodUDF(Item * i1, Item * i2, const string &k) {
+ELG::prodUDF(Item * i1, Item * i2, const string &k) {
     setKey(k);
     List<Item> l;
     l.push_back(i1);
@@ -901,7 +901,7 @@ EncLayer *
 EncLayerFactory::encLayer(onion o, SECLEVEL sl, Create_field * cf, PRNG * key) {
     switch (sl) {
     case SECLEVEL::ELG: {
-       return new ElGamal(cf, key);
+       return new ELG(cf, key);
     } 
     case SECLEVEL::RND: {
 	if (IsMySQLTypeNumeric(cf->sql_type) || (o == oOPE)) {
