@@ -84,6 +84,7 @@ ZZ ElGamal::decrypt(const ZZ &c){
 	ZZ s = PowerMod(c1,sK,q);
 	InvMod(s,s,q);
 	ZZ ret = MulMod(c2,s,q);
+	cout << "\n\nDECRYPTION c1 "<< c1 << "\n\n c2 "<<c2<<"\n\nRESULT "<<ret<<endl;
 	return ret;
 }
 

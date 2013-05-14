@@ -650,14 +650,14 @@ HOM::sumUDF(Item * i1, Item * i2, const string &k) {
 
 ELG::ELG(Create_field * f, PRNG * prng)
     : EncLayer(f),
-      sk(ElGamal::keygen(prng, nbits))
+      sk(ElGamal::keygen(prng))
 {
 }
 
 
 Create_field *
 ELG::newCreateField(string anonname) {
-    return createFieldHelper(cf, 96, MYSQL_TYPE_VARCHAR, anonname); //sorry for magic numbers
+    return createFieldHelper(cf, 192, MYSQL_TYPE_VARCHAR, anonname); //sorry for magic numbers
 }
 
 Item *

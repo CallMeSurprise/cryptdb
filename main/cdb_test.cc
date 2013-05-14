@@ -76,7 +76,7 @@ static string prettyq(string s) {
 
   for (uint i = 0; i < s.length(); i++) {
     char c = s[i];
-    if (isalnum(c) || (c == ' ')) {
+    if (isalnum(c) || (c == ' ') || (c == ')') || (c == '(')) {
       res <<  c;
     } else {
       res << hex << (int)c;
@@ -134,7 +134,7 @@ static bool handle_line(Connect& conn, Rewriter& r, const string& q)
     for (auto new_q = qr.queries.begin(); new_q != qr.queries.end(); new_q++) {
       cerr << endl
            << RED_BEGIN << "ENCRYPTED QUERY:" << COLOR_END << endl
-           << prettyq(*new_q) << endl;
+           << *new_q << endl;
       assert(conn.execute(*new_q, dbres));
     }
     if (!dbres) {

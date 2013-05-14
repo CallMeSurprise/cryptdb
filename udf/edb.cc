@@ -624,35 +624,29 @@ prod(UDF_INIT *initid, UDF_ARGS *args,
     if (initid->ptr)
         free(initid->ptr);
 
+    uint64_t clen = args->lengths[0];
     uint64_t qlen = args->lengths[2];
-    uint64_t clen = args->lengths[0]/2;
 
-    cerr << "qlen " << qlen << " clen " << clen << "\n";
-    ZZ fc1, fc2, vc1, vc2, q;
+	cerr << "\n\n PROD " << clen << " "<< qlen << endl;
 
-    //get c1, c2 for field
-    ZZFromBytes(fc1, (const uint8_t *) args->args[0], clen);
-    ZZFromBytes(fc2, (const uint8_t *) args->args[0]+clen, clen);
+    ZZ fc, vc, q;
 
+    //get c for field
+    ZZFromBytes(fc, (const uint8_t *) args->args[0], clen);
 
-	//get c1, c2 for value
-    ZZFromBytes(vc1, (const uint8_t *) args->args[1], clen);
-    ZZFromBytes(vc2, (const uint8_t *) args->args[1]+clen, clen);
+	//get c for value
+    ZZFromBytes(vc, (const uint8_t *) args->args[1], clen);
 
 	//get q
     ZZFromBytes(q, (const uint8_t *) args->args[2], qlen);
 
-    
-    ZZ rc1, rc2;
-    MulMod(rc1, fc1, vc1, q);
-    MulMod(rc2, fc2, vc2, q);
+	ZZ res = ElGamal::mul(fc, vc, q);
 
-    void *rbuf = malloc((size_t)qlen);
+    void* rbuf = malloc(clen*8);
     initid->ptr = (char *) rbuf;
-    BytesFromZZ((uint8_t *) rbuf, rc1, clen);
-    BytesFromZZ(((uint8_t *) rbuf)+clen, rc2, clen);
+    BytesFromZZ((unsigned char*) rbuf, res, clen);
 
-    *length = (long unsigned int) qlen;
+    *length = (unsigned long) clen;
     return initid->ptr;
 }
 

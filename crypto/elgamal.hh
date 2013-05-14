@@ -11,13 +11,12 @@ using namespace NTL;
 class ElGamal {
 	public:
 		ElGamal(const vector<ZZ> &key);
-		vector<ZZ> pubkey() const { return { pK, q, g }; }
 		ZZ hompubkey() const { return q; } 
 		
 		ZZ encrypt(const ZZ &m);
 		ZZ decrypt(const ZZ &c);
 		
-		static vector<ZZ> keygen(PRNG* rng, long len = 384, uint abits = 256);
+		static vector<ZZ> keygen(PRNG* rng, long len = 766, uint abits = 256);
 		void rand_gen(size_t niter = 100, size_t nmax = 1000);
 
 		static bool gen_check(ZZ p, ZZ q, ZZ gen);
