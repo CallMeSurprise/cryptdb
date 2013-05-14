@@ -22,6 +22,8 @@ class ElGamal {
 
 		static bool gen_check(ZZ p, ZZ q, ZZ gen);
 
+		static ZZ mul(ZZ a, ZZ b, ZZ q);
+
 	protected:
 		list<ZZ> rqueue; //pre-computed randomness
 

@@ -12,6 +12,10 @@ $(OBJDIR)/libedbcrypto.so: $(CRYPTOOBJ) $(OBJDIR)/libedbutil.so
 #$(OBJDIR)/crypto/x: $(OBJDIR)/crypto/x.o $(OBJDIR)/libedbcrypto.so
 #	$(CXX) $< -o $@ $(LDFLAGS) -ledbcrypto
 
+all:	$(OBJDIR)/crypto/elg
+$(OBJDIR)/crypto/elg: $(OBJDIR)/crypto/elg.o $(OBJDIR)/libedbcrypto.so
+	$(CXX) $< -o $@ $(LDFLAGS) -ledbcrypto
+
 install: install_crypto
 
 .PHONY: install_crypto

@@ -20,6 +20,7 @@
 #include <crypto/blowfish.hh>
 #include <crypto/SWPSearch.hh>
 #include <crypto/paillier.hh>
+#include <crypto/elgamal.hh>
 #include <util/params.hh>
 #include <util/util.hh>
 
@@ -624,13 +625,15 @@ prod(UDF_INIT *initid, UDF_ARGS *args,
         free(initid->ptr);
 
     uint64_t qlen = args->lengths[2];
-	uint64_t clen = args->lengths[0]/2;
+    uint64_t clen = args->lengths[0]/2;
 
+    cerr << "qlen " << qlen << " clen " << clen << "\n";
     ZZ fc1, fc2, vc1, vc2, q;
 
-	//get c1, c2 for field
+    //get c1, c2 for field
     ZZFromBytes(fc1, (const uint8_t *) args->args[0], clen);
-	ZZFromBytes(fc2, (const uint8_t *) args->args[0]+clen, clen);
+    ZZFromBytes(fc2, (const uint8_t *) args->args[0]+clen, clen);
+
 
 	//get c1, c2 for value
     ZZFromBytes(vc1, (const uint8_t *) args->args[1], clen);
@@ -639,6 +642,7 @@ prod(UDF_INIT *initid, UDF_ARGS *args,
 	//get q
     ZZFromBytes(q, (const uint8_t *) args->args[2], qlen);
 
+    
     ZZ rc1, rc2;
     MulMod(rc1, fc1, vc1, q);
     MulMod(rc2, fc2, vc2, q);

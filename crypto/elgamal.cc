@@ -87,6 +87,30 @@ ZZ ElGamal::decrypt(const ZZ &c){
 	return ret;
 }
 
+ZZ ElGamal::mul(ZZ a, ZZ b, ZZ q){
+	unsigned char cpa[192];
+	unsigned char cpb[192];
+	
+	BytesFromZZ(cpa, a, 192); 
+	BytesFromZZ(cpb, b, 192); 
+
+	ZZ ac1 = ZZFromBytes(cpa, 96);
+	ZZ ac2 = ZZFromBytes((cpa+96), 96); 
+	ZZ bc1 = ZZFromBytes(cpb, 96);
+	ZZ bc2 = ZZFromBytes((cpb+96), 96); 
+
+	ZZ c1 = MulMod(ac1, bc1, q);
+	ZZ c2 = MulMod(ac2, bc2, q);
+	
+	unsigned char c1p[96]; //768 bits = max size of q
+	unsigned char c2p[96]; 
+
+	BytesFromZZ(c1p, c1, 96); 
+	BytesFromZZ(c2p, c2, 96);
+
+	return ZZFromBytes(c1p, 192); //turn concat of arrays into ZZ
+}
+
 /*
 int main(){
 	ElGamal elgamal;
