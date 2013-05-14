@@ -88,8 +88,9 @@ EncSet::chooseOne() const
         oDET,
         oOPE,
         oAGG,
+		oELG,
         oSWP,
-	oPLAIN, 
+		oPLAIN, 
     };
 
     

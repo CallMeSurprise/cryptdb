@@ -598,6 +598,22 @@ test_gfe(size_t q)
     cout << "test_gfe size " << sizeof(T) << " q " << q << " ok\n";
 }
 
+static void
+test_elg()
+{
+    urandom u;
+    auto k = ElGamal::keygen(&u);
+    ElGamal eg(k);
+
+    ZZ pt0 = u.rand_zz_mod(to_ZZ(1) << 256);
+    ZZ pt1 = u.rand_zz_mod(to_ZZ(1) << 256);
+
+    ZZ ct0 = eg.encrypt(pt0);
+    ZZ ct1 = eg.encrypt(pt1);
+    assert(eg.decrypt(ct0) == pt0);
+    assert(eg.decrypt(ct1) == pt1);
+}
+
 int
 main(int ac, char **av)
 {
@@ -622,6 +638,7 @@ main(int ac, char **av)
     test_skip32();
     test_online_ope();
     test_ffx();
+	test_elg();
 
     AES aes128(u.rand_string(16));
     test_block_cipher(&aes128, &u, "aes-128");

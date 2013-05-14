@@ -1,7 +1,7 @@
-#include <crypto/elgamal.hh>
 #include <iostream>
 #include <NTL/ZZ.h>
 #include <crypto/prng.hh>
+#include <crypto/elgamal.hh>
 
 using namespace std;
 using namespace NTL;
@@ -87,29 +87,23 @@ ZZ ElGamal::decrypt(const ZZ &c){
 	return ret;
 }
 
-/* ONLY FOR TESTING
+/*
 int main(){
 	ElGamal elgamal;
-	ElGamalCipher cipher;
 	urandom u;
 	ZZ message;
 
-	elgamal.KeyGen(&u,1000);
+	elgamal = ElGamal(ElGamal::keygen(&u,1000));
 
 	message = 1000;
-	message = message*message;
-	message = message*message;
-	message = message*message;
-	message = message*1000000;
-	cout << "Prime: " << elgamal.prime << '\n';
+	cout << "Prime: " << elgamal.q << '\n';
 	cout << "g: " << elgamal.g << '\n';
-	cout << "sKey: " << elgamal.sKey << '\n';
-	cout << "pKey: " << elgamal.pKey << '\n';
+	cout << "sKey: " << elgamal.sK << '\n';
+	cout << "pKey: " << elgamal.pK << '\n';
 	
-	cipher = elgamal.Encrypt(message);
-	cout << cipher.c1 << " " << cipher.c2 << '\n';
+	cipher = elgamal.encrypt(message);
+	cout << cipher << '\n';
 
-	cout << elgamal.Decrypt(cipher) << '\n';
+	cout << elgamal.decrypt(cipher) << '\n';
 	return 0;
-}
-*/
+}*/

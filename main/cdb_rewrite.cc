@@ -628,12 +628,8 @@ typical_gather(Analysis & a, Item_func * i,
     childr_rp[1] = gather(args[0], r1, a);
     childr_rp[2] = gather(args[1], r2, a);
 
-	cout << childr_rp[1]->es_out << "\n" << childr_rp[2]->es_out << "\n" << my_es; 
-
     EncSet solution = my_es.intersect(childr_rp[1]->es_out).
 	                    intersect(childr_rp[2]->es_out);
-
-	cout << "\n" << solution;
 
     if (solution.empty()) {
 	    cerr << "crypto schemes does not support this query BECAUSE " << i << "NEEDS " << my_es << "\n" \
@@ -712,14 +708,14 @@ static inline Item *
 rewrite(Item *i, const OLK & constr, Analysis &a, string context = "")
 {
     if (context.size()) {
-	context = " for " + context;
+		context = " for " + context;
     }
     RewritePlan * rp = getAssert(a.rewritePlans, i);
     assert(rp);
     if (!rp->es_out.contains(constr)) {
-	cerr << "query cannot be supported because " << i << " needs to return " << constr << context << "\n" \
-	     << "BUT it can only return " << rp->es_out << " BECAUSE " << rp->r << "\n";
-	assert(false);
+		cerr << "query cannot be supported because " << i << " needs to return " << constr << context << "\n" \
+			 << "BUT it can only return " << rp->es_out << " BECAUSE " << rp->r << "\n";
+		assert(false);
     }
     return itemTypes.do_rewrite(i, constr, rp, a);
 }
