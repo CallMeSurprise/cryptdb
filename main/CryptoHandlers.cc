@@ -46,55 +46,6 @@ get_key_item(const string & key) {
     return keyI;
 }
 
-// ElGamal
-
-ELG::ELG(Create_field * f, PRNG * prng)
-    : EncLayer(f),
-      sk(ElGamal::keygen(prng, nbits))
-{
-}
-
-
-Create_field *
-ELG::newCreateField(string anonname) {
-    return createFieldHelper(cf, ciph_size, MYSQL_TYPE_LONGLONG, anonname);
-}
-
-
-/*
-* TODO(finche): make enc/dec
-*/
-Item *
-ELG::encrypt(Item * ptext, uint64_t IV, const string &k) {
-    setKey(k);
-    uint64_t p = static_cast<Item_int *>(ptext)->value;
-    LOG(encl) << "ElGamal encrypt " << p << " IV " << IV;
-    return new Item_int((ulonglong) p);
-}
-
-Item *
-ELG::decrypt(Item * ctext, uint64_t IV, const string &k) {
-    setKey(k);
-    uint64_t c = static_cast<Item_int*>(ctext)->value;
-    LOG(encl) << "ElGamal decrypt " << c << " IV " << IV;
-    return new Item_int((ulonglong) c);
-}
-
-void
-ELG::setKey(const string &k) {
-    if (k.empty()) {
-        return;
-    }
-	//left empty as in Paillier
-}
-
-void
-ELG::unSetKey(const string &k) {
-    if (k.empty()) {
-        return;
-    }
-    //left empty as in Paillier
-}
 
 /****************** RND *********************/
 
@@ -695,7 +646,53 @@ HOM::sumUDF(Item * i1, Item * i2, const string &k) {
     return new Item_func_udf_str(&u_sum_f, l);
 }
 
-/****PRODUCT*******/
+/*********ElGamal*************/
+
+ELG::ELG(Create_field * f, PRNG * prng)
+    : EncLayer(f),
+      sk(ElGamal::keygen(prng, nbits))
+{
+}
+
+
+Create_field *
+ELG::newCreateField(string anonname) {
+    return createFieldHelper(cf, 96, MYSQL_TYPE_VARCHAR, anonname); //sorry for magic numbers
+}
+
+Item *
+ELG::encrypt(Item * ptext, uint64_t IV, const string &k) {
+    setKey(k);
+    ZZ enc = sk.encrypt(ItemIntToZZ(ptext));
+    unSetKey(k);
+    return ZZToItemStr(enc);
+}
+
+Item *
+ELG::decrypt(Item * ctext, uint64_t IV, const string &k) {
+    setKey(k);
+    ZZ enc = ItemStrToZZ(ctext);
+    ZZ dec = sk.decrypt(enc);
+    LOG(encl) << "ELG ciph " << enc << "---->" << dec; 
+    unSetKey(k);
+    return ZZToItemInt(dec);
+}
+
+void
+ELG::setKey(const string &k) {
+    if (k.empty()) {
+        return;
+    }
+	//left empty as in Paillier
+}
+
+void
+ELG::unSetKey(const string &k) {
+    if (k.empty()) {
+        return;
+    }
+    //left empty as in Paillier
+}
 
 static udf_func u_prod_f = {
     LEXSTRING("prod"),
@@ -717,7 +714,7 @@ ELG::prodUDF(Item * i1, Item * i2, const string &k) {
     List<Item> l;
     l.push_back(i1);
     l.push_back(i2);
-//    l.push_back(ZZToItemStr(sk.hompubkey()));
+    l.push_back(ZZToItemStr(sk.hompubkey()));
     unSetKey(k);
 
     return new Item_func_udf_str(&u_prod_f, l);
@@ -900,48 +897,47 @@ Search::searchUDF(Item * field, Item * expr) {
 EncLayer *
 EncLayerFactory::encLayer(onion o, SECLEVEL sl, Create_field * cf, PRNG * key) {
     switch (sl) {
-    case SECLEVEL::ELG: {
-       return new ELG(cf, key);
-    } 
-    case SECLEVEL::RND: {
-	if (IsMySQLTypeNumeric(cf->sql_type) || (o == oOPE)) {
-	    return new RND_int(cf, key);
-	} else {
-	    return new RND_str(cf, key);
-	}
+		case SECLEVEL::ELG: {
+		   return new ELG(cf, key);
+		} 
+		case SECLEVEL::RND: {
+			if (IsMySQLTypeNumeric(cf->sql_type) || (o == oOPE)) {
+				return new RND_int(cf, key);
+			} else {
+				return new RND_str(cf, key);
+			}
+		}
+		case SECLEVEL::DET: {
+			if (IsMySQLTypeNumeric(cf->sql_type)) {
+				return new DET_int(cf, key);
+			} else {
+				return new DET_str(cf, key);
+			}
+		}
+		case SECLEVEL::DETJOIN: {
+			if (IsMySQLTypeNumeric(cf->sql_type)) {
+				return new DETJOIN_int(cf, key);
+			} else {
+				return new DETJOIN_str(cf, key);
+			}
+		}
+		case SECLEVEL::OPE: {
+		if (IsMySQLTypeNumeric(cf->sql_type)) {
+			return new OPE_int(cf, key);
+		} else {
+			return new OPE_str(cf, key);
+		}
+		}
+		case SECLEVEL::HOM: {
+			return new HOM(cf, key);
+		}
+		case SECLEVEL::SEARCH: {
+			return new Search(cf, key);
+		}
+		default:{
+			thrower() << "unknown or unimplemented security level \n";
+		 }
     }
-    case SECLEVEL::DET: {
-	if (IsMySQLTypeNumeric(cf->sql_type)) {
-	    return new DET_int(cf, key);
-	} else {
-	    return new DET_str(cf, key);
-	}
-    }
-    case SECLEVEL::DETJOIN: {
-	if (IsMySQLTypeNumeric(cf->sql_type)) {
-	    return new DETJOIN_int(cf, key);
-	} else {
-	    return new DETJOIN_str(cf, key);
-	}
-    }
-    case SECLEVEL::OPE: {
-	if (IsMySQLTypeNumeric(cf->sql_type)) {
-	    return new OPE_int(cf, key);
-	} else {
-	    return new OPE_str(cf, key);
-	}
-    }
-    case SECLEVEL::HOM: {
-        return new HOM(cf, key);
-    }
-    case SECLEVEL::SEARCH: {
-        return new Search(cf, key);
-    }
-    default:{
-	
-    }
-    }
-    thrower() << "unknown or unimplemented security level \n";
 }
 
 const std::vector<udf_func*> udf_list = {

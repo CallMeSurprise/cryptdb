@@ -6,9 +6,8 @@
 using namespace std;
 using namespace NTL;
 
-ElGamal::ElGamal(const std::vector<NTL::ZZ> &key)
-	: pK(key[0]), q(key[1]), g(key[2]),
-	  sK(key[3])
+ElGamal::ElGamal(const std::vector<ZZ> &key)
+	: pK(key[0]), q(key[1]), g(key[2]), sK(key[3])
 {
 }
 
@@ -21,34 +20,34 @@ ElGamal::rand_gen(size_t niter, size_t nmax)
         niter = min(niter, nmax - rqueue.size());
 
     for (uint i = 0; i < niter; i++) {
-        ZZ r = RandomLen_ZZ(nbits) % n;
-        ZZ rn = PowerMod(g, n*r, n2);
-        rqueue.push_back(rn);
+        ZZ r = RandomLen_ZZ(1024) % q; //sorry for magic numbers will fix
+        ZZ rq = PowerMod(g, q*r, q);
+        rqueue.push_back(rq);
     }
 }
 
-std::vector<NTL::ZZ> ElGamal::keygen(PRNG* rng, long len, uint nbits) {
+vector<ZZ> ElGamal::keygen(PRNG* rng, long len, uint abits) {
 	//generate a safe prime
-	ZZ p = GenGermainPrime_ZZ(long l, long err = 80);
-	ZZ q = 2*p + 1; 
+	ZZ p = GenGermainPrime_ZZ(len, 80);
+	ZZ prime = 2*p + 1; 
 	
 	//pick a generator in Z_q
 	ZZ gen = rng->rand_zz_nbits(abits);
 	
-	while (!genCheck(p, q, gen)) {
+	while (!gen_check(p, prime, gen)) {
 		gen = rng->rand_zz_nbits(abits);
 	}
 	
 	ZZ x = rng->rand_zz_nbits(abits); //secret key
  
-	ZZ h = PowerMod(g, sK, q); // Calculates g^x (mod prime)
+	ZZ h = PowerMod(gen, x, prime); // Calculates g^x (mod prime)
 	return { h, prime, gen, x };
 }
 
 /*
 * Check if gen is a generator mod q = 2p+1
 */
-bool genCheck(ZZ p, ZZ q, ZZ gen) {
+bool ElGamal::gen_check(ZZ p, ZZ q, ZZ gen) {
 	if (PowerMod(gen, p, q) == 1) {
 		return false;
 	} else if(PowerMod(gen, 2, q) == 1) {
@@ -57,22 +56,37 @@ bool genCheck(ZZ p, ZZ q, ZZ gen) {
 	return true; 
 }
 
-ElGamalCipher ElGamal::encrypt(ZZ m){
-	ElGamalCipher cipher;
-	ZZ k = RandomBnd(prime);		// sKey random number in [0,prime-1] NTL LIBRARY
-	PowerMod(cipher.c1,g,k,prime);		// c1 = g^k mod prime
-	PowerMod(cipher.c2,pKey,k,prime);	// c2 = pKey^k
-	MulMod(cipher.c2,m,cipher.c2,prime);	// c2 = m*pKey^k
-	return cipher;
+ZZ ElGamal::encrypt(const ZZ &m){
+	ZZ c1, c2;
+	unsigned char c1p[96]; //768 bits = max size of q
+	unsigned char c2p[96]; 
+
+	ZZ k = RandomBnd(q); //random number in Z_q
+
+	PowerMod(c1,g,k,q);		// c1 = g^k %q
+	PowerMod(c2,pK,k,q);	// c2 = pK^k %q
+	MulMod(c2,m,c2,q);	// c2 = m*pK^k %q
+
+	BytesFromZZ(c1p, c1, 96); 
+	BytesFromZZ(c2p, c2, 96);
+
+	return ZZFromBytes(c1p, 192); //turn concat of arrays into ZZ
 }
 
-ZZ ElGamal::Decrypt(ElGamalCipher cipher){
-	ZZ a,ret;
-	PowerMod(a,cipher.c1,sKey,prime);
-	InvMod(a,a,prime);
-	MulMod(ret,cipher.c2,a,prime);
+ZZ ElGamal::decrypt(const ZZ &c){
+	unsigned char cp[192];
+	
+	BytesFromZZ(cp, c, 192); 
+
+	ZZ c1 = ZZFromBytes(cp, 96);
+	ZZ c2 = ZZFromBytes((cp+96), 96); 
+	
+	ZZ s = PowerMod(c1,sK,q);
+	InvMod(s,s,q);
+	ZZ ret = MulMod(c2,s,q);
 	return ret;
 }
+
 /* ONLY FOR TESTING
 int main(){
 	ElGamal elgamal;

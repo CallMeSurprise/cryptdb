@@ -399,7 +399,7 @@ addSaltToReturn(ReturnMeta * rm, int pos) {
 static Item *
 encrypt_item_layers(Item * i, onion o, list<EncLayer *> & layers, Analysis &a, FieldMeta *fm = 0, uint64_t IV = 0) {
     if (o == oPLAIN) {//Unencrypted item
-	return i;
+		return i;
     }
 
     // Encrypted item
@@ -628,8 +628,12 @@ typical_gather(Analysis & a, Item_func * i,
     childr_rp[1] = gather(args[0], r1, a);
     childr_rp[2] = gather(args[1], r2, a);
 
+	cout << childr_rp[1]->es_out << "\n" << childr_rp[2]->es_out << "\n" << my_es; 
+
     EncSet solution = my_es.intersect(childr_rp[1]->es_out).
 	                    intersect(childr_rp[2]->es_out);
+
+	cout << "\n" << solution;
 
     if (solution.empty()) {
 	    cerr << "crypto schemes does not support this query BECAUSE " << i << "NEEDS " << my_es << "\n" \
@@ -653,7 +657,6 @@ typical_gather(Analysis & a, Item_func * i,
     return new RewritePlanOneOLK(out_es.extract_singleton(),
 				 solution.chooseOne(), childr_rp,
 				 my_r);
-
 }
 
 
@@ -990,25 +993,25 @@ static class ANON : public CItemSubtypeIT<Item_field, Item::Type::FIELD_ITEM> {
     {
         LOG(cdb_v) << "do_rewrite_type FIELD_ITEM " << *i;
 
-	FieldMeta *fm = a.ps->schema->getFieldMeta(i->table_name, i->field_name);
-	//assert(constr.key == fm);
+		FieldMeta *fm = a.ps->schema->getFieldMeta(i->table_name, i->field_name);
+		//assert(constr.key == fm);
 
-	//check if we need onion adjustment
-	if (constr.l < fm->encdesc.olm[constr.o]) {
-	    //need adjustment, throw exception
-	    throw OnionAdjustExcept(constr.o, fm, constr.l, i);
-	}
+		//check if we need onion adjustment
+		if (constr.l < fm->encdesc.olm[constr.o]) {
+			//need adjustment, throw exception
+			throw OnionAdjustExcept(constr.o, fm, constr.l, i);
+		}
 
-	Item_field * res = make_item(i);
+		Item_field * res = make_item(i);
 
-	if (!fm->isEncrypted()) { // Not encrypted
-	    return res;
-	}
+		if (!fm->isEncrypted()) { // Not encrypted
+			return res;
+		}
 
-	// Encrypted item
+		// Encrypted item
 
-	res->table_name = make_thd_string(anonymize_table_name(i->table_name, a));
-	res->field_name = make_thd_string(fm->onions[constr.o]->onionname);
+		res->table_name = make_thd_string(anonymize_table_name(i->table_name, a));
+		res->field_name = make_thd_string(fm->onions[constr.o]->onionname);
 
         return res;
     }
@@ -1048,12 +1051,12 @@ static class ANON : public CItemSubtypeIT<Item_field, Item::Type::FIELD_ITEM> {
         for (auto it = fm->onions.begin();
              it != fm->onions.end(); ++it) {
             string name = it->second->onionname;
-	    new_field = make_item(i, name);
-            l.push_back(new_field);
+			new_field = make_item(i, name);
+			l.push_back(new_field);
         }
         if (fm->has_salt) {
             assert(!fm->salt_name.empty());
-	    assert(new_field); //need an anonymized field as template to create
+			assert(new_field); //need an anonymized field as template to create
 			       //salt item
             l.push_back(make_item(new_field, fm->salt_name));
         }
@@ -1454,7 +1457,7 @@ static CItemAdditive<str_minus> ANON;
 template<const char *NAME>
 class CItemMultiplicative : public CItemSubtypeFN<Item_func_mul, NAME> {
     virtual RewritePlan * do_gather_type(Item_func_mul *i, reason &tr, Analysis & a) const {
-	return typical_gather(a, i, PROD_EncSet, "multiplicative", tr, true);
+		return typical_gather(a, i, PROD_EncSet, "multiplicative", tr, true);
     }
     virtual Item * do_optimize_type(Item_func_mul *i, Analysis & a) const {
         return do_optimize_type_self_and_args(i, a);
@@ -1465,23 +1468,22 @@ class CItemMultiplicative : public CItemSubtypeFN<Item_func_mul, NAME> {
 				   Analysis & a) const {
         LOG(cdb_v) << "do_rewrite_type Item_func_mul" << *i << " with constr " << constr; 
 
-	//rewrite children
-	assert_s(i->argument_count() == 2, " expecting two arguments for multiplicative operator ");
-	Item **args = i->arguments();
+		//rewrite children
+		assert_s(i->argument_count() == 2, " expecting two arguments for multiplicative operator ");
+		Item **args = i->arguments();
 
-	RewritePlanOneOLK * rp = (RewritePlanOneOLK *) _rp;
+		RewritePlanOneOLK * rp = (RewritePlanOneOLK *) _rp;
 
-        cerr << "Rewrite plan is " << rp << "\n";
+		cerr << "Rewrite plan is " << rp << "\n";
 
-	Item * arg0 = itemTypes.do_rewrite(args[0],
-					   rp->olk, rp->childr_rp[0], a);
-	Item * arg1 = itemTypes.do_rewrite(args[1],
+		Item * arg0 = itemTypes.do_rewrite(args[0],
+						   rp->olk, rp->childr_rp[0], a);
+		Item * arg1 = itemTypes.do_rewrite(args[1],
 					   rp->olk, rp->childr_rp[1], a);
 
-	EncLayer *el = getAssert(constr.key->onions, oELG)->layers.back();
-	assert_s(el->level() == SECLEVEL::ELG, "incorrect onion level on onion oELG");
-	return ((ElGamal*)el)->prodUDF(arg0, arg1); 
-
+		EncLayer *el = getAssert(constr.key->onions, oELG)->layers.back();
+		assert_s(el->level() == SECLEVEL::ELG, "incorrect onion level on onion oELG");
+		return ((ELG*)el)->prodUDF(arg0, arg1); 
 	}
 };
 
@@ -3335,7 +3337,7 @@ Rewriter::Rewriter(ConnectionInfo ci,
     ps.masterKey = getKey(u.rand_string(AES_KEY_BYTES));
 
     if (multi) {
-	ps.encByDefault = false;
+		ps.encByDefault = false;
     }
 
     ps.e_conn = Connect::getEmbedded(embed_dir);

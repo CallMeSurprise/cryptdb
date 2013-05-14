@@ -623,20 +623,32 @@ prod(UDF_INIT *initid, UDF_ARGS *args,
     if (initid->ptr)
         free(initid->ptr);
 
-    uint64_t n2len = args->lengths[2];
-    ZZ field, val, n2;
-    ZZFromBytes(field, (const uint8_t *) args->args[0], args->lengths[0]);
-    ZZFromBytes(val, (const uint8_t *) args->args[1], args->lengths[1]);
-    ZZFromBytes(n2, (const uint8_t *) args->args[2], args->lengths[2]);
+    uint64_t qlen = args->lengths[2];
+	uint64_t clen = args->lengths[0]/2;
 
-    ZZ res;
-    MulMod(res, field, val, n2);
+    ZZ fc1, fc2, vc1, vc2, q;
 
-    void *rbuf = malloc((size_t)n2len);
+	//get c1, c2 for field
+    ZZFromBytes(fc1, (const uint8_t *) args->args[0], clen);
+	ZZFromBytes(fc2, (const uint8_t *) args->args[0]+clen, clen);
+
+	//get c1, c2 for value
+    ZZFromBytes(vc1, (const uint8_t *) args->args[1], clen);
+    ZZFromBytes(vc2, (const uint8_t *) args->args[1]+clen, clen);
+
+	//get q
+    ZZFromBytes(q, (const uint8_t *) args->args[2], qlen);
+
+    ZZ rc1, rc2;
+    MulMod(rc1, fc1, vc1, q);
+    MulMod(rc2, fc2, vc2, q);
+
+    void *rbuf = malloc((size_t)qlen);
     initid->ptr = (char *) rbuf;
-    BytesFromZZ((uint8_t *) rbuf, res, (size_t)n2len);
+    BytesFromZZ((uint8_t *) rbuf, rc1, clen);
+    BytesFromZZ(((uint8_t *) rbuf)+clen, rc2, clen);
 
-    *length = (long unsigned int) n2len;
+    *length = (long unsigned int) qlen;
     return initid->ptr;
 }
 

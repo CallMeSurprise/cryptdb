@@ -36,12 +36,12 @@ EncSet::intersect(const EncSet & es2) const
                 m[it->first] = LevelFieldPair(
                         sl, it->second.second);
             } else {
-	    // different fields for same onion, level gives null intersection,
-	    // unless join
-		if (sl == SECLEVEL::DETJOIN) {
-		    m[it->first] = LevelFieldPair(sl, it->second.second);
-		}
-	    }
+				// different fields for same onion, level gives null intersection,
+				// unless join
+				if (sl == SECLEVEL::DETJOIN) {
+					m[it->first] = LevelFieldPair(sl, it->second.second);
+				}
+			}
         }
     }
     return EncSet(m);

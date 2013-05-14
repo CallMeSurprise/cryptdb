@@ -5,31 +5,30 @@
 #include <NTL/ZZ.h>
 #include <crypto/prng.hh>
 
-struct elGamalCipher{
-	NTL::ZZ c1, c2;
-};
-typedef struct elGamalCipher ElGamalCipher;
+using namespace std;
+using namespace NTL;
 
 class ElGamal {
 	public:
-		ElGamal(const std::vector<NTL::ZZ> &key);
-		std::vector<NTL::ZZ> pubkey() const { return { pK, q, g }; }
-		NTL::ZZ hompubkey() const { return q; } 
+		ElGamal(const vector<ZZ> &key);
+		vector<ZZ> pubkey() const { return { pK, q, g }; }
+		ZZ hompubkey() const { return q; } 
 		
-		ElGamalCipher encrypt(const NTL::ZZ &m);
-		NTL::ZZ decrypt(const ElGamalCipher &c);
-		NTL::ZZ mul(const NTL::ZZ &c0, const NTL::ZZ &c1) const;
+		ZZ encrypt(const ZZ &m);
+		ZZ decrypt(const ZZ &c);
 		
-		static std::vector<NTL::ZZ> keygen(PRNG*, long len = 384, uint abits = 256);
+		static vector<ZZ> keygen(PRNG* rng, long len = 384, uint abits = 256);
 		void rand_gen(size_t niter = 100, size_t nmax = 1000);
 
+		static bool gen_check(ZZ p, ZZ q, ZZ gen);
+
 	protected:
-		std::list<NTL::ZZ> rqueue; //pre-computed randomness
+		list<ZZ> rqueue; //pre-computed randomness
 
 	private:
-		NTL::ZZ pK; //public key g^x
-		NTL::ZZ sK; //private key x
-		NTL::ZZ q; //prime
-		NTL::ZZ g; //generator
+		ZZ pK; //public key g^x
+		ZZ q; //prime
+		ZZ g; //generator
+		ZZ sK; //private key x
 };
 

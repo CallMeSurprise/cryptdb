@@ -52,36 +52,36 @@ operator<<(ostream &out, const EncSet & es);
 
 const EncSet EQ_EncSet = {
         {
-	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
-            {oDET,   LevelFieldPair(SECLEVEL::DET, NULL)},
+			{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+			{oDET,   LevelFieldPair(SECLEVEL::DET, NULL)},
             {oOPE,   LevelFieldPair(SECLEVEL::OPE, NULL)},
         }
 };
 
 const EncSet JOIN_EncSet = {
         {
-	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+			{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
             {oDET,   LevelFieldPair(SECLEVEL::DETJOIN, NULL)},
         }
 };
 
 const EncSet ORD_EncSet = {
     {
-	{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
-	{oOPE, LevelFieldPair(SECLEVEL::OPE, NULL)},
+		{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+		{oOPE, LevelFieldPair(SECLEVEL::OPE, NULL)},
     }
 };
 
 const EncSet PLAIN_EncSet = {
     {
-	{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+		{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
     }
 };
 
 //todo: there should be a map of FULL_EncSets depending on item type
 const EncSet FULL_EncSet = {
         {
-	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+			{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
             {oDET, LevelFieldPair(SECLEVEL::RND, NULL)},
             {oOPE, LevelFieldPair(SECLEVEL::RND, NULL)},
             {oAGG, LevelFieldPair(SECLEVEL::HOM, NULL)},
@@ -92,7 +92,7 @@ const EncSet FULL_EncSet = {
 
 const EncSet FULL_EncSet_Str = {
         {
-	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+			{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
             {oDET, LevelFieldPair(SECLEVEL::RND, NULL)},
             {oOPE, LevelFieldPair(SECLEVEL::RND, NULL)},
             {oSWP, LevelFieldPair(SECLEVEL::SEARCH, NULL)},
@@ -101,7 +101,7 @@ const EncSet FULL_EncSet_Str = {
 
 const EncSet FULL_EncSet_Int = {
         {
-	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+			{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
             {oDET, LevelFieldPair(SECLEVEL::RND, NULL)},
             {oOPE, LevelFieldPair(SECLEVEL::RND, NULL)},
             {oAGG, LevelFieldPair(SECLEVEL::HOM, NULL)},
@@ -111,21 +111,21 @@ const EncSet FULL_EncSet_Int = {
 
 const EncSet Search_EncSet = {
         {
-	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+			{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
             {oSWP, LevelFieldPair(SECLEVEL::SEARCH, NULL)},
         }
 };
 
 const EncSet ADD_EncSet = {
         {
-	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+			{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
             {oAGG, LevelFieldPair(SECLEVEL::HOM, NULL)},
         }
 };
 
 const EncSet PROD_EncSet = {
         {
-	    {oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
+			{oPLAIN, LevelFieldPair(SECLEVEL::PLAINVAL, NULL)},
             {oELG, LevelFieldPair(SECLEVEL::ELG, NULL)},
         }
 };
